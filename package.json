@@ -1,0 +1,7 @@
+{
+  "name": "vanillajs-board",
+  "version": "0.0.0",
+  "main": "index.js",
+  "author": "Xvezda <xvezda@naver.com>",
+  "private": true
+}
