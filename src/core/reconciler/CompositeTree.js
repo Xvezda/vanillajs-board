@@ -13,7 +13,19 @@ export class CompositeTree extends InstanceTree {
 
   mount() {
     const { type, props } = this.tree;
-    const instance = this.instance = new type;
+
+    const diffChildren = component => {
+      const nextTree = component.render();
+      // TODO: 더 나은 업데이트 방법?
+      this.children.diff(nextTree);
+    };
+
+    const instance = this.instance = new class extends type {
+      setState(partialState) {
+        super.setState(partialState);
+        diffChildren(this);
+      }
+    };
     instance.props = props;
 
     this.rendered = instance.render();

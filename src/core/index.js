@@ -1,5 +1,23 @@
 import { instantiateTree } from './reconciler';
 
+export class Component {
+  constructor() {
+    this.state = {};
+  }
+
+  setState(partialState) {
+    this.state = {
+      ...this.state,
+      ...partialState,
+    };
+  }
+
+  render() {
+    return null;
+  }
+}
+Component.prototype.isComponent = {};
+
 export function createElement(type, props, ...children) {
   return {
     type,
