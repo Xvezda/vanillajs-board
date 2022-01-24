@@ -1,7 +1,29 @@
+function provideDefaultKey(children) {
+  children
+    .filter(child => typeof child !== 'string')
+    .forEach((child, i) => {
+      if (typeof child.props.key === 'undefined') {
+        child.props.key = i;
+      }
+    });
+  return children;
+}
+
+function wrapChildren(children) {
+  return provideDefaultKey(children.flat());
+}
+
 function createElement(type, props, ...children) {
   return {
     type,
-    props: Object.assign({}, props, children.length > 0 && { children }),
+    props: Object
+      .assign(
+        {},
+        props,
+        children.length > 0 &&
+        Array.isArray(children) ?
+        { children: wrapChildren(children) } :
+        { children }),
   };
 }
 
@@ -64,47 +86,75 @@ class HostTree extends InstanceTree {
   }
 
   diff(nextTree) {
-    if (typeof this.tree !== typeof nextTree || this.tree.type !== nextTree.type) {
+    if (this.tree.type !== nextTree.type) {
       // TODO
       return;
     }
 
-    const prevChildren = this.tree.props.children;
-    const nextChildren = nextTree.props.children;
-    if (prevChildren && nextChildren) {
-      let i;
-      for (i = 0; i < prevChildren.length; ++i) {
-        if (typeof nextChildren[i] === 'undefined') {
-          this.transaction.push({
-            type: 'remove',
-            payload: {
-              node: this.children[i].instance,
-            }
-          });
-        } else if (prevChildren[i].type !== nextChildren[i].type) {
-          const childInstance = instantiateTree(nextChildren[i]);
-          this.transaction.push({
-            type: 'replace',
-            payload: {
-              from: this.children[i].instance,
-              to: childInstance.mount(),
-            }
-          });
-        } else if (prevChildren[i].type === nextChildren[i].type) {
-          this.children[i].diff(nextChildren[i]);
-        }
-      }
-      for (; i < nextChildren.length; ++i) {
-        const childInstance = instantiateTree(nextChildren[i]);
-        this.transaction.push({
-          type: 'create',
+    const prevChildren = this.children;
+    const nextChildren = nextTree.props.children.map(instantiateTree);
+
+    const extractKey =
+      ({ tree }, i) => typeof tree !== 'string' ? tree.props.key : i;
+    const prevKeys = prevChildren.map(extractKey);
+    const nextKeys = nextChildren.map(extractKey);
+
+    const mappedChildren = [...nextChildren, ...prevChildren]
+      .reduce((acc, child) => (
+        { ...acc, [child.tree.props.key]: child }
+      ), {});
+
+    const removed = [];
+    prevKeys.forEach(key => {
+      if (!nextKeys.includes(key)) {
+        removed.push({
+          type: 'remove',
           payload: {
-            node: childInstance.mount(),
+            node: mappedChildren[key].instance,
           }
         });
       }
-      this.process();
-    }
+    });
+    this.transaction.push(...removed);
+
+    const inserted = [];
+    nextKeys.forEach((key, i) => {
+      if (!prevKeys.includes(key)) {
+        const node = mappedChildren[key].instance ||
+          mappedChildren[key].mount();
+
+        inserted.push({
+          type: 'insert',
+          payload: {
+            node,
+            index: i,
+          }
+        });
+      }
+    });
+    this.transaction.push(...inserted);
+
+    const moved = [];
+    prevKeys.forEach((key, i) => {
+      if (nextKeys.includes(key)) {
+        const movedIndex = nextKeys.indexOf(key);
+        if (movedIndex !== i) {
+          moved.push({
+            type: 'move',
+            payload: {
+              node: mappedChildren[key].instance,
+              index: movedIndex,
+            }
+          });
+        }
+      }
+    });
+    this.transaction.push(...moved);
+
+    this.process();
+
+    this.tree = nextTree;
+    this.children = nextKeys.map(key => mappedChildren[key]);
   }
 
   process() {
@@ -114,11 +164,16 @@ class HostTree extends InstanceTree {
         case 'remove':
           node.removeChild(payload.node);
           break;
-        case 'replace':
-          node.replaceChild(payload.to, payload.from);
-          break;
-        case 'create':
-          node.appendChild(payload.node);
+        case 'move':
+        case 'insert':
+          if (
+            payload.index === node.childNodes.length - 1 &&
+            payload.node !== node.childNodes[node.childNodes.length-1]
+          ) {
+            node.appendChild(payload.node);
+          } else if (payload.node !== node.childNodes[payload.index]) {
+            node.insertBefore(payload.node, node.childNodes[payload.index])
+          }
           break;
       }
     });
@@ -185,26 +240,27 @@ const h = createElement;
 
 class App {
   render() {
-    if (this.props.hasBaz) {
+    if (!this.props.shuffle) {
       return (
-        h('ul', null,
-          h('li', null, 'foo'),
-          h('li', null, 'bar'),
-          h('li', null, 'baz')
+        h('div', null,
+          ['bar', 'baz']
+            .map(item => h('input', {name: item, placeholder: item, key: item}))
         )
       );
     } else {
       return (
-        h('ul', null,
-          h('li', null, 'foo'),
-          h('li', null, 'bar'),
+        h('div', null,
+          ['foo', 'bar', 'baz']
+            .map(item => h('input', {name: item, placeholder: item, key: item}))
         )
       );
     }
   }
 }
 
-render(h(App, {hasBaz: false}), document.body);
-setTimeout(() => {
-  render(h(App, {hasBaz: true}), document.body);
+let flag = false;
+render(h(App, {shuffle: flag}), document.body);
+setInterval(() => {
+  flag = !flag;
+  render(h(App, {shuffle: flag}), document.body);
 }, 3000);
