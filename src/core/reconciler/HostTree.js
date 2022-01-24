@@ -90,10 +90,12 @@ export class HostTree extends InstanceTree {
     const extractKey = ({ key }, i) => key ?? i;
     const prevKeys = oldChildren.map(extractKey);
     const nextKeys = newChildren.map(extractKey);
-
-    const mappedChildren = [...newChildren, ...oldChildren]
-      .reduce((acc, child) => (
-        { ...acc, [child.tree.props.key]: child }
+    
+    const combinedChildren = [...newChildren, ...oldChildren];
+    const mappedChildren = combinedChildren
+      .map((child, i) => [child.tree.props?.key ?? i, child])
+      .reduce((acc, [key, child]) => (
+        { ...acc, [key]: child }
       ), {});
 
     const removed = [];
