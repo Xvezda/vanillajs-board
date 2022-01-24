@@ -58,7 +58,15 @@ function instantiateTree(tree) {
 
 function render(element, container) {
   const instance = instantiateTree(element);
-  container.appendChild(instance.mount());
+  const firstNode = container.childNodes[0];
+  if (firstNode && !firstNode._mounted) {
+    container.childNodes
+      .forEach(container.removeChild.bind(container));
+    return;
+  }
+  const rootNode = instance.mount();
+  rootNode._mounted = instance;
+  container.appendChild(rootNode);
 }
 
 const h = createElement;
@@ -74,14 +82,5 @@ class App {
   }
 }
 
-const prevTree = h(App);
-const nextTree = h('ul', null,
-  h('li', null, 'foo'),
-  h('li', null, 'bar'),
-  h('li', null, 'baz'),
-);
-
-render(
-  prevTree,
-  document.body,
-);
+render(h(App), document.body);
+render(h(App), document.body);
