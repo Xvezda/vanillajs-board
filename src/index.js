@@ -1,7 +1,3 @@
-function wrapChildren(children) {
-  return children.flat();
-}
-
 function createElement(type, props, ...children) {
   return {
     type,
@@ -11,7 +7,7 @@ function createElement(type, props, ...children) {
         props,
         children.length > 0 &&
         Array.isArray(children) ?
-        { children: wrapChildren(children) } :
+        { children: children.flat() } :
         { children }),
   };
 }
@@ -72,8 +68,9 @@ class HostTree extends InstanceTree {
     const { type, props } = this.tree;
     const node = document.createElement(type);
 
+    const isReserved = name => HostTree.reservedAttributes.includes(name);
     Object.entries(props)
-      .filter(([name]) => !HostTree.reservedAttributes.includes(name))
+      .filter(([name]) => !isReserved(name))
       .forEach(([name, value]) => {
         node.setAttribute(name, value);
       });
@@ -82,7 +79,8 @@ class HostTree extends InstanceTree {
       this.children = props.children
         .map(instantiateTree);
 
-      this.children.map(instance => instance.mount())
+      this.children
+        .map(instance => instance.mount())
         .forEach(mounted => node.appendChild(mounted));
     }
     this.instance = node;
@@ -109,47 +107,44 @@ class HostTree extends InstanceTree {
 
     const removed = [];
     prevKeys.forEach(key => {
-      if (!nextKeys.includes(key)) {
-        removed.push({
-          type: 'remove',
-          payload: {
-            node: mappedChildren[key].instance,
-          }
-        });
-      }
+      if (nextKeys.includes(key)) return;
+      removed.push({
+        type: 'remove',
+        payload: {
+          node: mappedChildren[key].instance,
+        }
+      });
     });
     this.transaction.push(...removed);
 
     const inserted = [];
     nextKeys.forEach((key, i) => {
-      if (!prevKeys.includes(key)) {
-        const node = mappedChildren[key].instance ||
-          mappedChildren[key].mount();
+      if (prevKeys.includes(key)) return;
+      const node = mappedChildren[key].instance ||
+        mappedChildren[key].mount();
 
-        inserted.push({
-          type: 'insert',
-          payload: {
-            node,
-            index: i,
-          }
-        });
-      }
+      inserted.push({
+        type: 'insert',
+        payload: {
+          node,
+          index: i,
+        }
+      });
     });
     this.transaction.push(...inserted);
 
     const moved = [];
     prevKeys.forEach((key, i) => {
-      if (nextKeys.includes(key)) {
-        const movedIndex = nextKeys.indexOf(key);
-        if (movedIndex !== i) {
-          moved.push({
-            type: 'move',
-            payload: {
-              node: mappedChildren[key].instance,
-              index: movedIndex,
-            }
-          });
-        }
+      if (!nextKeys.includes(key)) return;
+      const movedIndex = nextKeys.indexOf(key);
+      if (movedIndex !== i) {
+        moved.push({
+          type: 'move',
+          payload: {
+            node: mappedChildren[key].instance,
+            index: movedIndex,
+          }
+        });
       }
     });
     this.transaction.push(...moved);
