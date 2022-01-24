@@ -1,4 +1,5 @@
 import { HostTree } from './HostTree';
+import { instantiateTree } from './internal';
 
 export class TextTree extends HostTree {
   constructor(tree) {
@@ -14,7 +15,9 @@ export class TextTree extends HostTree {
   }
 
   diff(nextTree) {
-    if (this.tree !== nextTree) {
+    if (typeof nextTree !== 'string') {
+      this.unmount(instantiateTree(nextTree));
+    } else if (this.tree !== nextTree) {
       this.transaction.push({
         type: 'replace',
         payload: {

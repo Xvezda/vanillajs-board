@@ -38,18 +38,20 @@ export class CompositeTree extends InstanceTree {
     return node;
   }
 
-  unmount() {
+  unmount(nextInstance) {
     const instance = this.instance;
     if (typeof instance.componentWillUnmount === 'function') {
       instance.componentWillUnmount();
     }
-    this.instance = null;
-    this.children.unmount();
+    this.instance = nextInstance;
+    this.children.unmount(nextInstance);
   }
 
   diff(nextTree) {
-    if (this.tree.type !== nextTree.type) return;
-
+    if (this.tree.type !== nextTree.type) {
+      this.unmount(instantiateTree(nextTree));
+      return;
+    }
     const nextInstance = new nextTree.type;
     nextInstance.props = nextTree.props;
     const nextRendered = nextInstance.render();

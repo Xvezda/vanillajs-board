@@ -5,7 +5,7 @@ export class InstanceTree {
     this.children = null;
     this.transaction = [];
 
-    if (tree.props.key) {
+    if (typeof tree === 'object' && tree.props.key) {
       this.key = tree.props.key;
     }
   }

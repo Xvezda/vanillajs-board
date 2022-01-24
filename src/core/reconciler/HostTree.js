@@ -33,8 +33,18 @@ export class HostTree extends InstanceTree {
     return node;
   }
 
-  unmount() {
-    this.children.forEach(child => child.unmount());
+  unmount(nextInstance) {
+    const host = this.getHost();
+    if (nextInstance) {
+      let parentNode = host.parentNode;
+      while (parentNode) {
+        if (parentNode._mounted) break;
+        parentNode = parentNode.parentNode;
+      }
+      const mounted = parentNode._mounted;
+      mounted.children = nextInstance;
+      host.parentNode.replaceChild(nextInstance.mount(), host);
+    }
   }
 
   diffProps(nextProps) {
@@ -67,7 +77,10 @@ export class HostTree extends InstanceTree {
   }
 
   diff(nextTree) {
-    if (this.tree.type !== nextTree.type) return;
+    if (this.tree.type !== nextTree.type) {
+      this.unmount(instantiateTree(nextTree));
+      return;
+    }
 
     this.diffProps(nextTree.props);
 
