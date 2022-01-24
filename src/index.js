@@ -5,31 +5,76 @@ function createElement(type, props, ...children) {
   };
 }
 
-function mount(tree) {
-  if (typeof tree === 'string') {
-    return document.createTextNode(tree);
+class InstanceTree {
+  constructor(tree) {
+    this.tree = tree;
+    this.instance = null;
+    this.children = null;
   }
-  const { type, props } = tree;
-  const node = document.createElement(type);
-  if (props && props.children) {
-    props.children
-      .map(mount)
-      .forEach(node.appendChild.bind(node));
+}
+
+class CompositeTree extends InstanceTree {
+  constructor(tree) {
+    super(tree);
+    this.rendered = null;
   }
-  return node;
+
+  mount() {
+    const { type, props } = this.tree;
+    const instance = new type;
+    this.instance = instance;
+    instance.props = props;
+
+    this.rendered = instance.render();
+    this.children = instantiateTree(this.rendered);
+
+    return this.children.mount();
+  }
+}
+
+class HostTree extends InstanceTree {
+  mount() {
+    if (typeof this.tree === 'string') {
+      return document.createTextNode(this.tree);
+    }
+    const { type, props } = this.tree;
+    const node = document.createElement(type);
+    if (props && props.children) {
+      this.children = props.children
+        .map(instantiateTree)
+        .map(instance => instance.mount())
+        .forEach(mounted => node.appendChild(mounted));
+    }
+    return node;
+  }
+}
+
+function instantiateTree(tree) {
+  if (typeof tree === 'string' || typeof tree.type === 'string') {
+    return new HostTree(tree);
+  }
+  return new CompositeTree(tree);
 }
 
 function render(element, container) {
-  container.appendChild(mount(element));
+  const instance = instantiateTree(element);
+  container.appendChild(instance.mount());
 }
 
 const h = createElement;
 
-const prevTree = h('ul', null,
-  h('li', null, 'foo'),
-  h('li', null, 'bar'),
-);
+class App {
+  render() {
+    return (
+      h('ul', null,
+        h('li', null, 'foo'),
+        h('li', null, 'bar'),
+      )
+    );
+  }
+}
 
+const prevTree = h(App);
 const nextTree = h('ul', null,
   h('li', null, 'foo'),
   h('li', null, 'bar'),
