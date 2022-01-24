@@ -1,16 +1,5 @@
-function provideDefaultKey(children) {
-  children
-    .filter(child => typeof child !== 'string')
-    .forEach((child, i) => {
-      if (typeof child.props.key === 'undefined') {
-        child.props.key = i;
-      }
-    });
-  return children;
-}
-
 function wrapChildren(children) {
-  return provideDefaultKey(children.flat());
+  return children.flat();
 }
 
 function createElement(type, props, ...children) {
@@ -33,6 +22,10 @@ class InstanceTree {
     this.instance = null;
     this.children = null;
     this.transaction = [];
+
+    if (tree.props.key) {
+      this.key = tree.props.key;
+    }
   }
 }
 
@@ -68,13 +61,24 @@ class CompositeTree extends InstanceTree {
 }
 
 class HostTree extends InstanceTree {
+  static get reservedAttributes() {
+    return ['children', 'key', 'ref'];
+  }
+
   mount() {
     if (typeof this.tree === 'string') {
       return document.createTextNode(this.tree);
     }
     const { type, props } = this.tree;
     const node = document.createElement(type);
-    if (props && props.children) {
+
+    Object.entries(props)
+      .filter(([name]) => !HostTree.reservedAttributes.includes(name))
+      .forEach(([name, value]) => {
+        node.setAttribute(name, value);
+      });
+
+    if (props.children) {
       this.children = props.children
         .map(instantiateTree);
 
@@ -91,15 +95,14 @@ class HostTree extends InstanceTree {
       return;
     }
 
-    const prevChildren = this.children;
-    const nextChildren = nextTree.props.children.map(instantiateTree);
+    const oldChildren = this.children;
+    const newChildren = nextTree.props.children.map(instantiateTree);
 
-    const extractKey =
-      ({ tree }, i) => typeof tree !== 'string' ? tree.props.key : i;
-    const prevKeys = prevChildren.map(extractKey);
-    const nextKeys = nextChildren.map(extractKey);
+    const extractKey = ({ key }, i) => key ?? i;
+    const prevKeys = oldChildren.map(extractKey);
+    const nextKeys = newChildren.map(extractKey);
 
-    const mappedChildren = [...nextChildren, ...prevChildren]
+    const mappedChildren = [...newChildren, ...oldChildren]
       .reduce((acc, child) => (
         { ...acc, [child.tree.props.key]: child }
       ), {});
@@ -154,7 +157,8 @@ class HostTree extends InstanceTree {
     this.process();
 
     this.tree = nextTree;
-    this.children = nextKeys.map(key => mappedChildren[key]);
+    const nextChildren = nextKeys.map(key => mappedChildren[key]);
+    this.children = nextChildren;
   }
 
   process() {
@@ -165,6 +169,7 @@ class HostTree extends InstanceTree {
           node.removeChild(payload.node);
           break;
         case 'move':
+          // FIXME: 리액트에서는 노드간의 순서가 변경되는 경우에도 input 포커스를 잃지 않는다.
         case 'insert':
           if (
             payload.index === node.childNodes.length - 1 &&
@@ -182,6 +187,12 @@ class HostTree extends InstanceTree {
 }
 
 class TextTree extends InstanceTree {
+  constructor(tree) {
+    super(tree);
+    // 텍스트는 자식노드가 없다
+    this.children = null;
+  }
+
   mount() {
     const node = document.createTextNode(this.tree);
     this.instance = node;
@@ -218,13 +229,17 @@ function instantiateTree(tree) {
   return new CompositeTree(tree);
 }
 
+function clearContainer(container) {
+  container.childNodes
+    .forEach(container.removeChild.bind(container));
+}
+
 function render(element, container) {
   const instance = instantiateTree(element);
   const firstNode = container.childNodes[0];
   if (firstNode) {
     if (!firstNode._mounted) {
-      container.childNodes
-        .forEach(container.removeChild.bind(container));
+      clearContainer(container);
     } else {
       const mounted = firstNode._mounted;
       mounted.diff(element);
