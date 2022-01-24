@@ -7,16 +7,32 @@ export class CompositeTree extends InstanceTree {
     this.rendered = null;
   }
 
+  getHost() {
+    return this.children.getHost();
+  }
+
   mount() {
     const { type, props } = this.tree;
-    const instance = new type;
-    this.instance = instance;
+    const instance = this.instance = new type;
     instance.props = props;
 
     this.rendered = instance.render();
     this.children = instantiateTree(this.rendered);
 
-    return this.children.mount();
+    const node = this.children.mount();
+    if (typeof instance.componentDidMount === 'function') {
+      queueMicrotask(() => instance.componentDidMount());
+    }
+    return node;
+  }
+
+  unmount() {
+    const instance = this.instance;
+    if (typeof instance.componentWillUnmount === 'function') {
+      instance.componentWillUnmount();
+    }
+    this.instance = null;
+    this.children.unmount();
   }
 
   diff(nextTree) {

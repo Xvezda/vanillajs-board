@@ -1,6 +1,6 @@
-import { InstanceTree } from './InstanceTree';
+import { HostTree } from './HostTree';
 
-export class TextTree extends InstanceTree {
+export class TextTree extends HostTree {
   constructor(tree) {
     super(tree);
     // 텍스트는 자식노드가 없다

@@ -7,10 +7,11 @@ export class HostTree extends InstanceTree {
     return ['children', 'key', 'ref'];
   }
 
+  getHost() {
+    return this.instance;
+  }
+
   mount() {
-    if (typeof this.tree === 'string') {
-      return document.createTextNode(this.tree);
-    }
     const { type, props } = this.tree;
     const node = document.createElement(type);
 
@@ -32,6 +33,10 @@ export class HostTree extends InstanceTree {
     return node;
   }
 
+  unmount() {
+    this.children.forEach(child => child.unmount());
+  }
+
   diffProps(nextProps) {
     const prevProps = this.tree.props;
     const combinedProps = Object.assign({}, prevProps, nextProps);
@@ -46,7 +51,8 @@ export class HostTree extends InstanceTree {
             }
           });
         } else if (
-          typeof prevProps[name] === 'undefined' && typeof nextProps[name] !== 'undefined' ||
+          typeof prevProps[name] === 'undefined' &&
+          typeof nextProps[name] !== 'undefined' ||
           prevProps[name] !== nextProps[name]
         ) {
           this.transaction.push({
@@ -80,10 +86,12 @@ export class HostTree extends InstanceTree {
     const removed = [];
     prevKeys.forEach(key => {
       if (nextKeys.includes(key)) return;
+      const children = mappedChildren[key];
+      children.unmount();
       removed.push({
         type: 'node/remove',
         payload: {
-          node: mappedChildren[key].instance,
+          node: children.getHost(),
         }
       });
     });
@@ -92,9 +100,8 @@ export class HostTree extends InstanceTree {
     const inserted = [];
     nextKeys.forEach((key, i) => {
       if (prevKeys.includes(key)) return;
-      const node = mappedChildren[key].instance ||
-        mappedChildren[key].mount();
-
+      mappedChildren[key].mount();
+      const node = mappedChildren[key].getHost();
       inserted.push({
         type: 'node/insert',
         payload: {
@@ -111,7 +118,7 @@ export class HostTree extends InstanceTree {
       const movedIndex = nextKeys.indexOf(key);
       if (movedIndex !== i) {
         const children = mappedChildren[key];
-        const node = children.instance;
+        const node = children.getHost();
         children.diff(newChildren[movedIndex].tree);
         moved.push({
           type: 'node/move',
