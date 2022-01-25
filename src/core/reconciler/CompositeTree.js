@@ -46,8 +46,9 @@ export class CompositeTree extends InstanceTree {
     EnhancedType.defaultProps = type.defaultProps || {};
 
     const extendedProps = getExtendedProps(EnhancedType, props);
-    const instance = this.instance = new EnhancedType(extendedProps);
+    const instance = new EnhancedType(extendedProps);
     instance.props = extendedProps;
+    this.instance = instance;
 
     this.rendered = instance.render();
     this.children = instantiateTree(this.rendered);
@@ -112,5 +113,8 @@ export class CompositeTree extends InstanceTree {
       });
     }
     this.children.diff(nextRendered);
+
+    this.rendered = nextRendered;
+    this.instance.props = extendedProps;
   }
 }
