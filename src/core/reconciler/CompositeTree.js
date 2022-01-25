@@ -91,7 +91,7 @@ export class CompositeTree extends InstanceTree {
     if (!host._mounted) {
       if (typeof this.instance.componentDidMount === 'function') {
         queueMicrotask(() => {
-          this.instance.componentDidMount()
+          this.instance.componentDidMount();
         });
       }
     }

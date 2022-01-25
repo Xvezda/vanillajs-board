@@ -6,36 +6,67 @@ export function withFetch(url, options = {}) {
       constructor(props) {
         super(props);
 
-        this.abortController = new AbortController();
-      }
-
-      componentDidMount() {
-        this.fetchData();
+        this.state = {
+          data: null,
+        };
+        this.abortController = null;
       }
 
       componentWillUnmount() {
-        this.abortController.abort();
+        try {
+          this.abortController?.abort();
+        } catch (e) {
+          console.error(e);
+        }
       }
 
       fetchData() {
+        if (this.abortController) return;
         this.abortController = new AbortController();
-        fetch(typeof url === 'function' ? url(this.props) : url, {
-          ...options, signal: this.abortController.signal})
+        fetch(
+          typeof url === 'function' ?
+          url(this.props) :
+          url, {
+            ...options, signal: this.abortController.signal
+          })
           .then(res => res.json())
           .then(data => this.setState({ data, }))
           .catch(err => {
             // TODO
             console.error(err);
-          });
+          })
+          .finally(() => this.abortController = null);
       }
 
       render() {
         return h(WrappedComponent, {
           fetchedData: this.state.data,
           fetch: this.fetchData.bind(this),
+          abort: this.abortController?.abort.bind(this.abortController) ||
+            (() => {}),
           ...this.props
         });
       }
     };
   };
+}
+
+export function withInitFetch(url, options = {}) {
+  return function (WrappedComponent) {
+    return withFetch(url, options)(
+      class extends Component {
+        componentDidMount() {
+          this.props.fetch();
+        }
+
+        componentWillUnmount() {
+          this.props.abort();
+        }
+
+        render() {
+          return h(WrappedComponent, {...this.props});
+        }
+      }
+    );
+  }
 }

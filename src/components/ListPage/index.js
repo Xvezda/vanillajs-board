@@ -1,4 +1,4 @@
-import { createElement as h, Component, Link, withFetch } from '@/core';
+import { createElement as h, Component, Link, withInitFetch } from '@/core';
 import { Articles } from './Articles';
 
 class ListPage extends Component {
@@ -16,5 +16,5 @@ class ListPage extends Component {
   }
 }
 
-const ListPageWithFetch = withFetch('/api/articles')(ListPage);
+const ListPageWithFetch = withInitFetch('/api/articles')(ListPage);
 export { ListPageWithFetch as ListPage };

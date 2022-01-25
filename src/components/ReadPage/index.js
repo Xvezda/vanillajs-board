@@ -1,4 +1,4 @@
-import { createElement as h, Component, withRouter, withFetch, compose } from '@/core';
+import { createElement as h, Component, withRouter, withInitFetch, compose } from '@/core';
 
 class ReadPage extends Component {
   render() {
@@ -17,7 +17,7 @@ class ReadPage extends Component {
 
 const ReadPageWithRouter = compose(
   withRouter,
-  withFetch(props => `/api/articles/${props.match.params.id}`),
+  withInitFetch(props => `/api/articles/${props.match.params.id}`),
 )(ReadPage);
 
 export { ReadPageWithRouter as ReadPage };
