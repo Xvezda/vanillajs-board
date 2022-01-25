@@ -19,6 +19,12 @@ export class Component {
 }
 Component.prototype.isComponent = {};
 
+function wrapChildren(children) {
+  return children
+    .flat()
+    .map(v => ['object', 'function'].includes(typeof v) ? v : String(v));
+}
+
 export function createElement(type, props, ...children) {
   return {
     type,
@@ -28,7 +34,7 @@ export function createElement(type, props, ...children) {
         props,
         children.length > 0 &&
         Array.isArray(children) ?
-        { children: children.flat() } :
+        { children: wrapChildren(children) } :
         { children }),
   };
 }

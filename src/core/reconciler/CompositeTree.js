@@ -31,8 +31,10 @@ export class CompositeTree extends InstanceTree {
 
       render() {
         const rendered = super.render();
-        if (rendered === null) {
+        if (rendered === null || typeof rendered === 'boolean') {
           return '';
+        } else if (typeof rendered === 'number') {
+          return String(rendered);
         }
         return rendered;
       }
