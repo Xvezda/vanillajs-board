@@ -19,10 +19,26 @@ export class Component {
 }
 Component.prototype.isComponent = {};
 
+function warnIfKeyNotExists(children) {
+  if (
+    children.some(child => typeof child.props.key === 'undefined') ||
+    new Set(children.map(child => child.props.key)).size !== children.length
+  ) {
+    console.warn('children of list should have unique keys');
+  }
+}
+
+function childToString(child) {
+  return ['object', 'function'].includes(typeof child) ?
+    child :
+    String(child);
+}
+
 function wrapChildren(children) {
-  return children
-    .flat()
-    .map(v => ['object', 'function'].includes(typeof v) ? v : String(v));
+  if (children.some(child => Array.isArray(child))) {
+    children.forEach(warnIfKeyNotExists);
+  }
+  return children.flat().map(childToString);
 }
 
 export function createElement(type, props, ...children) {
@@ -33,8 +49,7 @@ export function createElement(type, props, ...children) {
         {},
         props,
         children.length > 0 &&
-        Array.isArray(children) ?
-        { children: wrapChildren(children) } :
+        { children: wrapChildren(children) } ||
         { children }),
   };
 }
