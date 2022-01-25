@@ -15,23 +15,33 @@ export class CompositeTree extends InstanceTree {
     const { type, props } = this.tree;
 
     const diffChildren = component => {
-      const nextTree = component.render();
-      // TODO: 더 나은 업데이트 방법?
-      this.children.diff(nextTree);
+      const nextChildTree = component.render();
+      this.children.diff(nextChildTree);
     };
 
-    const instance = this.instance = new class extends type {
+    const EnhancedType = class extends type {
       setState(partialState) {
         super.setState(partialState);
         diffChildren(this);
       }
+
+      forceUpdate() {
+        diffChildren(this);
+      }
     };
+
+    const instance = this.instance = new EnhancedType(props);
     instance.props = props;
 
     this.rendered = instance.render();
     this.children = instantiateTree(this.rendered);
+    this.children.parent = this;
 
     const node = this.children.mount();
+    if (!node._mounted) {
+      node._mounted = this;
+    }
+
     if (typeof instance.componentDidMount === 'function') {
       queueMicrotask(() => instance.componentDidMount());
     }
@@ -43,19 +53,46 @@ export class CompositeTree extends InstanceTree {
     if (typeof instance.componentWillUnmount === 'function') {
       instance.componentWillUnmount();
     }
-    this.instance = nextInstance;
+    const parent = this.parent;
+    if (parent) {
+      parent.children = nextInstance;
+    }
+    const host = this.getHost();
+    delete host._mounted;
+
     this.children.unmount(nextInstance);
   }
 
   diff(nextTree) {
     if (this.tree.type !== nextTree.type) {
-      this.unmount(instantiateTree(nextTree));
+      const nextInstance = instantiateTree(nextTree);
+      nextInstance.parent = this.parent;
+      this.unmount(nextInstance);
       return;
     }
-    const nextInstance = new nextTree.type;
+
+    const host = this.getHost();
+    if (!host._mounted) {
+      if (typeof this.instance.componentDidMount === 'function') {
+        queueMicrotask(() => {
+          this.instance.componentDidMount()
+        });
+      }
+    }
+
+    const nextInstance = new nextTree.type(nextTree.props);
     nextInstance.props = nextTree.props;
     const nextRendered = nextInstance.render();
 
+    // FIXME: state, props 비교
+    if (typeof this.instance.componentDidUpdate === 'function') {
+      queueMicrotask(() => {
+        this.instance.componentDidUpdate(
+          this.instance.state,
+          nextTree.props
+        );
+      });
+    }
     this.children.diff(nextRendered);
   }
 }

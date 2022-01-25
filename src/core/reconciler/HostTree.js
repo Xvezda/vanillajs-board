@@ -29,6 +29,17 @@ export class HostTree extends InstanceTree {
       });
   }
 
+  mountChildren(node, children) {
+    this.children = children
+      .map(instantiateTree);
+
+    this.children.parent = this;
+
+    this.children
+      .map(child => child.mount())
+      .forEach(mounted => node.appendChild(mounted));
+  }
+
   mount() {
     const { type, props } = this.tree;
     const node = document.createElement(type);
@@ -36,21 +47,19 @@ export class HostTree extends InstanceTree {
     this.mountProps(node, props);
 
     if (props.children) {
-      this.children = props.children
-        .map(instantiateTree);
-
-      this.children
-        .map(child => child.mount())
-        .forEach(mounted => node.appendChild(mounted));
+      this.mountChildren(node, props.children);
     }
     this.instance = node;
+
     return node;
   }
 
   unmount(nextInstance) {
     const host = this.getHost();
     if (nextInstance) {
+      const node = nextInstance.mount();
       let parentNode = host.parentNode;
+      node._mounted = host._mounted;
       while (parentNode) {
         if (parentNode._mounted) break;
         parentNode = parentNode.parentNode;
@@ -58,8 +67,13 @@ export class HostTree extends InstanceTree {
       if (parentNode) {
         const mounted = parentNode._mounted;
         mounted.children = nextInstance;
-        host.parentNode.replaceChild(nextInstance.mount(), host);
+        mounted.instance = nextInstance.instance;
+        this.parent.children = nextInstance;
+        host.parentNode.replaceChild(node, host);
       }
+      this.instance = node;
+      this.children = nextInstance.children;
+      this.tree = nextInstance.tree;
     }
   }
 
@@ -94,7 +108,9 @@ export class HostTree extends InstanceTree {
 
   diff(nextTree) {
     if (this.tree.type !== nextTree.type) {
-      this.unmount(instantiateTree(nextTree));
+      const nextInstance = instantiateTree(nextTree);
+      nextInstance.parent = this.parent;
+      this.unmount(nextInstance);
       return;
     }
 
@@ -167,11 +183,13 @@ export class HostTree extends InstanceTree {
 
     const nextChildren = nextKeys
       .map(key => mappedChildren[key]);
+    nextChildren.forEach(child => child.parent = this.parent);
 
     this.process();
 
     this.tree = nextTree;
     this.children = nextChildren;
+    this.children.parent = this;
   }
 
   process() {
