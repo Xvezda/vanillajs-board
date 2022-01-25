@@ -172,7 +172,8 @@ export class HostTree extends InstanceTree {
           type: 'node/move',
           payload: {
             node,
-            index: movedIndex,
+            from: i,
+            to: movedIndex,
           }
         });
       } else {
@@ -181,6 +182,7 @@ export class HostTree extends InstanceTree {
         children.diff(nextTree.props.children[i]);
       }
     });
+    moved.sort((a, b) => a.payload.to - b.payload.to);
     this.transaction.push(...moved);
 
     const nextChildren = nextKeys
@@ -195,14 +197,20 @@ export class HostTree extends InstanceTree {
   }
 
   process() {
+    const movedPairs = new Set();
     this.transaction.forEach(({ type, payload }) => {
       const node = this.instance;
       switch (type) {
-        case 'node/remove':
-          node.removeChild(payload.node);
-          break;
         case 'node/move':
           // FIXME: 리액트에서는 노드간의 순서가 변경되는 경우에도 input 포커스를 잃지 않는다.
+          if (!movedPairs.has(`${payload.to}:${payload.from}`)) {
+            const toNode = node.childNodes[payload.to];
+            const nextSibling = toNode.nextSibling;
+            payload.node.replaceWith(toNode);
+            node.insertBefore(payload.node, nextSibling);
+          }
+          movedPairs.add(`${payload.from}:${payload.to}`);
+          break;
         case 'node/insert':
           if (
             payload.index === node.childNodes.length - 1 &&
@@ -212,6 +220,9 @@ export class HostTree extends InstanceTree {
           } else if (payload.node !== node.childNodes[payload.index]) {
             node.insertBefore(payload.node, node.childNodes[payload.index])
           }
+          break;
+        case 'node/remove':
+          node.removeChild(payload.node);
           break;
         case 'attribute/set':
           node.setAttribute(payload.name, payload.value);
