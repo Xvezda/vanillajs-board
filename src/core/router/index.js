@@ -1,12 +1,15 @@
 import { createElement as h, Component } from '../dom';
+import { createContext } from '../context';
 
 export class Link extends Component {
   render() {
     return h('a', {
-      href: this.props.to,
-      onClick: this.navigate.bind(this),
-      ...this.props,
-    }, ...this.children);
+        href: this.props.to,
+        onClick: this.navigate.bind(this),
+        ...this.props,
+      },
+      this.children,
+    );
   }
 
   navigate(event) {
@@ -15,7 +18,7 @@ export class Link extends Component {
   }
 }
 
-function pathnameToRegExp(pathname) {
+function pathnameToRegExp(pathname = '/') {
   return pathname
     .replace(/(?<=\/)\:([a-zA-Z_]+)/, '(?<$1>[^/]+)')
     .replace(/\//g, '\\/');
@@ -34,25 +37,78 @@ function matchPath(pathname, props) {
   };
 }
 
+const Context = createContext({
+  match: null,
+});
 export class Router extends Component {
-  render() {
-    return this.props.children[0];
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      match: null,
+    };
   }
+
+  componentDidMount() {
+    this.setState({
+      match: matchPath(location.pathname, {path: '/'})
+    });
+  }
+
+  render() {
+    return (
+      h(Context.Provider, {
+          value: this.state,
+        },
+        this.props.children[0]
+      )
+    );
+  }
+}
+
+export class Route extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+    };
+  }
+
+  render() {
+    return (
+      h(Context.Consumer, null, context => {
+        // FIXME
+        const match = matchPath(location.pathname, this.props);
+        const component = this.props.component;
+        if (component) {
+          return h(component, context);
+        }
+        const children = component ?
+          h(component, {match: null, test: 'test', ...this.props}) :
+          this.props.children[0];
+
+        if (match) {
+          return (
+            h(Context.Provider, {value: { match, }}, children)
+          );
+        }
+        return '';
+      })
+    );
+  }
+}
+
+export function withRouter(WrappedComponent) {
+  return class extends Component {
+    render() {
+      return h(Route, {component: WrappedComponent});
+    }
+  };
 }
 
 export class Switch extends Component {
   render() {
     return this.props.children
       .find(child => matchPath(location.pathname, child.props)) || '';
-  }
-}
-
-export class Route extends Component {
-  render() {
-    if (matchPath(location.pathname, this.props)) {
-      const child = this.props.children[0];
-      return h(child.type, {match: matchPath(location.pathname, this.props), ...child.props});
-    }
-    return '';
   }
 }
