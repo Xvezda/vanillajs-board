@@ -4,9 +4,7 @@ import { createContext } from '../context';
 export const Link = withRouter(class extends Component {
   navigate(event) {
     event.preventDefault();
-    history.pushState({}, null, this.props.to);
-
-    this.props.router.forceUpdate();
+    this.props.history.push(this.props.to);
   }
 
   render() {
@@ -21,18 +19,23 @@ export const Link = withRouter(class extends Component {
   }
 });
 
-function pathnameToRegExp(pathname = '/') {
+function pathnameToRegExp(pathname) {
   return pathname
     .replace(/(?<=\/)\:([a-zA-Z_]+)/, '(?<$1>[^/]+)')
     .replace(/\//g, '\\/');
 }
 
-function matchPath(pathname, props) {
+function matchPath(pathname, props = {}) {
+  if (!props.path) {
+    return null;
+  }
   const pathRegex = '^' +
     pathnameToRegExp(props.path) +
     (props.exact ? '$' : '');
+
   const matched = new RegExp(pathRegex).exec(pathname);
   if (!matched) return null;
+
   return {
     params: {
       ...matched.groups
@@ -42,6 +45,8 @@ function matchPath(pathname, props) {
 
 const Context = createContext({
   match: null,
+  history: null,
+  location: null,
 });
 export class Router extends Component {
   constructor(props) {
@@ -82,11 +87,27 @@ export class Route extends Component {
       h(Context.Consumer, null, context => {
         const match = matchPath(location.pathname, this.props);
         const component = this.props.component;
-        if (component) {
-          return h(component, {...context, ...this.props.passedProps}, ...this.props.passedProps.children);
-        }
         if (context) {
-          return h(Context.Provider, {value: { match, ...this.props, ...context }}, this.props.children[0]);
+          return (
+            h(Context.Provider, {
+                value: { ...context, match }
+              },
+              component ?
+              h(component, {
+                  match: match || context.match,
+                  history: {
+                    push: (location) => {
+                      history.pushState({}, null, location);
+                      context.router.forceUpdate();
+                    }
+                  },
+                  ...this.props.passedProps
+                },
+                ...this.props.passedProps.children
+              ) :
+              this.props.children[0]
+            )
+          );
         }
         return '';
       })
@@ -97,7 +118,9 @@ export class Route extends Component {
 export function withRouter(WrappedComponent) {
   return class extends Component {
     render() {
-      return h(Route, {component: WrappedComponent, passedProps: this.props});
+      return (
+        h(Route, {component: WrappedComponent, passedProps: this.props})
+      );
     }
   };
 }
