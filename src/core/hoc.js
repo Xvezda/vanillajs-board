@@ -33,6 +33,7 @@ export function withFetch(url, options = {}) {
           .then(data => this.setState({ data, }))
           .catch(err => {
             // TODO
+            if (this.abortController.signal.aborted) return;
             console.error(err);
           })
           .finally(() => this.abortController = null);
