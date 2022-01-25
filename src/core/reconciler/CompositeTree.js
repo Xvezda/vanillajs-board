@@ -1,6 +1,10 @@
 import { InstanceTree } from './InstanceTree';
 import { instantiateTree } from './internal';
 
+function getExtendedProps(type, props) {
+  return {...type.defaultProps, ...props};
+}
+
 export class CompositeTree extends InstanceTree {
   constructor(tree) {
     super(tree);
@@ -39,9 +43,11 @@ export class CompositeTree extends InstanceTree {
         return rendered;
       }
     };
+    EnhancedType.defaultProps = type.defaultProps || {};
 
-    const instance = this.instance = new EnhancedType(props);
-    instance.props = props;
+    const extendedProps = getExtendedProps(EnhancedType, props);
+    const instance = this.instance = new EnhancedType(extendedProps);
+    instance.props = extendedProps;
 
     this.rendered = instance.render();
     this.children = instantiateTree(this.rendered);
@@ -90,8 +96,10 @@ export class CompositeTree extends InstanceTree {
       }
     }
 
-    const nextInstance = new nextTree.type(nextTree.props);
-    nextInstance.props = nextTree.props;
+    const NextType = nextTree.type;
+    const extendedProps = getExtendedProps(NextType, nextTree.props);
+    const nextInstance = new NextType(extendedProps);
+    nextInstance.props = extendedProps;
     const nextRendered = nextInstance.render();
 
     // FIXME: state, props 비교
