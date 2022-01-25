@@ -26,7 +26,7 @@ export class HostTree extends InstanceTree {
         .map(instantiateTree);
 
       this.children
-        .map(instance => instance.mount())
+        .map(child => child.mount())
         .forEach(mounted => node.appendChild(mounted));
     }
     this.instance = node;
@@ -41,9 +41,11 @@ export class HostTree extends InstanceTree {
         if (parentNode._mounted) break;
         parentNode = parentNode.parentNode;
       }
-      const mounted = parentNode._mounted;
-      mounted.children = nextInstance;
-      host.parentNode.replaceChild(nextInstance.mount(), host);
+      if (parentNode) {
+        const mounted = parentNode._mounted;
+        mounted.children = nextInstance;
+        host.parentNode.replaceChild(nextInstance.mount(), host);
+      }
     }
   }
 
@@ -115,8 +117,7 @@ export class HostTree extends InstanceTree {
     const inserted = [];
     nextKeys.forEach((key, i) => {
       if (prevKeys.includes(key)) return;
-      mappedChildren[key].mount();
-      const node = mappedChildren[key].getHost();
+      const node = mappedChildren[key].mount();
       inserted.push({
         type: 'node/insert',
         payload: {
@@ -131,8 +132,8 @@ export class HostTree extends InstanceTree {
     prevKeys.forEach((key, i) => {
       if (!nextKeys.includes(key)) return;
       const movedIndex = nextKeys.indexOf(key);
+      const children = mappedChildren[key];
       if (movedIndex !== i) {
-        const children = mappedChildren[key];
         const node = children.getHost();
         children.diff(newChildren[movedIndex].tree);
         moved.push({
@@ -142,14 +143,20 @@ export class HostTree extends InstanceTree {
             index: movedIndex,
           }
         });
+      } else {
+        children.instance = this.children[i].instance;
+        children.children = this.children[i].children;
+        children.diff(nextTree.props.children[i]);
       }
     });
     this.transaction.push(...moved);
 
+    const nextChildren = nextKeys
+      .map(key => mappedChildren[key]);
+
     this.process();
 
     this.tree = nextTree;
-    const nextChildren = nextKeys.map(key => mappedChildren[key]);
     this.children = nextChildren;
   }
 
