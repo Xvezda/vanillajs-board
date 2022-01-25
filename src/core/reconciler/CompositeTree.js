@@ -28,6 +28,14 @@ export class CompositeTree extends InstanceTree {
       forceUpdate() {
         diffChildren(this);
       }
+
+      render() {
+        const rendered = super.render();
+        if (rendered === null) {
+          return '';
+        }
+        return rendered;
+      }
     };
 
     const instance = this.instance = new EnhancedType(props);
