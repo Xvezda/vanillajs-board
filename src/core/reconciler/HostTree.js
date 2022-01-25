@@ -1,7 +1,8 @@
 import { InstanceTree } from './InstanceTree';
 import { instantiateTree } from './internal';
 
-const isReservedAttribute = name => HostTree.reservedAttributes.includes(name);
+const isReservedAttribute =
+  name => HostTree.reservedAttributes.includes(name) || /^on[A-Z]/.test(name);
 export class HostTree extends InstanceTree {
   static get reservedAttributes() {
     return ['children', 'key', 'ref'];
@@ -11,15 +12,28 @@ export class HostTree extends InstanceTree {
     return this.instance;
   }
 
-  mount() {
-    const { type, props } = this.tree;
-    const node = document.createElement(type);
-
-    Object.entries(props)
+  mountProps(node, props) {
+    const propsEntries = Object.entries(props);
+    propsEntries
       .filter(([name]) => !isReservedAttribute(name))
       .forEach(([name, value]) => {
         node.setAttribute(name, value);
       });
+
+    propsEntries
+      .filter(isReservedAttribute)
+      .forEach(([name, value]) => {
+        if (/^on[A-Z]/.test(name)) {
+          node[name.toLowerCase()] = value;
+        }
+      });
+  }
+
+  mount() {
+    const { type, props } = this.tree;
+    const node = document.createElement(type);
+
+    this.mountProps(node, props);
 
     if (props.children) {
       this.children = props.children
