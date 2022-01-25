@@ -30,7 +30,11 @@ export function withFetch(url, options = {}) {
       }
 
       render() {
-        return h(WrappedComponent, {fetched: this.state.data, ...this.props});
+        return h(WrappedComponent, {
+          fetchedData: this.state.data,
+          fetch: this.fetchData.bind(this),
+          ...this.props
+        });
       }
     };
   };

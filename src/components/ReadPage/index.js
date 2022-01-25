@@ -2,7 +2,7 @@ import { createElement as h, Component, withRouter, withFetch, compose } from '@
 
 class ReadPage extends Component {
   render() {
-    const article = this.props.fetched;
+    const article = this.props.fetchedData;
     return (
       article ?
         h('div', null,
