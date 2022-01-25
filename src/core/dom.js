@@ -1,7 +1,8 @@
 import { instantiateTree } from './reconciler';
 
 export class Component {
-  constructor() {
+  constructor(props = {}) {
+    this.props = props;
     this.state = {};
   }
 
