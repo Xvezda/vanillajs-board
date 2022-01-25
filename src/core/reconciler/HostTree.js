@@ -68,7 +68,9 @@ export class HostTree extends InstanceTree {
         const mounted = parentNode._mounted;
         mounted.children = nextInstance;
         mounted.instance = nextInstance.instance;
-        this.parent.children = nextInstance;
+        if (this.parent) {
+          this.parent.children = nextInstance;
+        }
         host.parentNode.replaceChild(node, host);
       }
       this.instance = node;
