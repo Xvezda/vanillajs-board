@@ -1,4 +1,5 @@
 import { createElement as h, Component } from './dom';
+import { request } from './utils';
 
 export function withFetch(url, options = {}) {
   return function (WrappedComponent) {
@@ -23,19 +24,16 @@ export function withFetch(url, options = {}) {
       fetchData() {
         if (this.abortController) return;
         this.abortController = new AbortController();
-        fetch(
+
+        request(
           typeof url === 'function' ?
           url(this.props) :
           url, {
-            ...options, signal: this.abortController.signal
+            ...options,
+            signal: this.abortController.signal
           })
-          .then(res => res.json())
-          .then(data => this.setState({ data, }))
-          .catch(err => {
-            // TODO
-            if (this.abortController.signal.aborted) return;
-            console.error(err);
-          })
+          .then(result => this.setState({ data: result }))
+          .catch(console.error)
           .finally(() => this.abortController = null);
       }
 
