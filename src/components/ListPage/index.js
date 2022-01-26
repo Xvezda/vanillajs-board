@@ -31,6 +31,14 @@ class ListPage extends Component {
     this.props.fetch();
   }
 
+  reset(event) {
+    event.preventDefault();
+
+    this.setState({
+      sort: 'asc',
+    });
+  }
+
   render() {
     const articles = []
       .concat(this.props.fetchedData)
@@ -46,6 +54,7 @@ class ListPage extends Component {
           resort: this.resort.bind(this)
         }),
         h('div', null,
+          h('button', {onClick: this.reset.bind(this)}, '초기화'),
           h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
           h('form', null,
             h('input', {placeholder: '검색어'}),
