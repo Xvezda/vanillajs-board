@@ -6,6 +6,7 @@ import {
   compose,
   formatTimestamp,
   request,
+  Redirect
 } from '@/core';
 import { urlFor } from '@/helper';
 
@@ -41,6 +42,10 @@ class ReadPage extends Component {
   }
 
   render() {
+    if (this.props.error) {
+      return h(Redirect, {to: '/error'});
+    }
+
     const article = this.props.fetchedData;
     return (
       article ?

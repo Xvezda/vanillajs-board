@@ -2,7 +2,8 @@ import {
   createElement as h, Component,
   Router,
   Switch,
-  Route 
+  Route,
+  Redirect,
 } from '@/core';
 import { urlFor } from '@/helper';
 
@@ -27,13 +28,16 @@ export class App extends Component {
             },
             h(WritePage)
           ),
+          h(Route, {path: '/error', exact: true}, 'error!'),
           h(Route, {
               path: urlFor({ type: 'read', payload: { id: ':id' }}),
               exact: true
             },
             h(ReadPage)
           ),
-          h(Route, null, ':)')
+          h(Route, null,
+            h(Redirect, {to: '/error'})
+          )
         )
       )
     );

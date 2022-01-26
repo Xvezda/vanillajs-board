@@ -12,6 +12,11 @@ export async function request(url, options = {}) {
     signal: abortController.signal,
     ...options
   });
+
+  if (400 <= response.status) {
+    throw response;
+  }
+
   const result = await response.json();
   cache.set(url, result);
 

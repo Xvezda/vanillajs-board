@@ -8,6 +8,7 @@ export function withFetch(url, options = {}) {
         super(props);
 
         this.state = {
+          error: null,
           data: null,
         };
         this.abortController = null;
@@ -33,13 +34,14 @@ export function withFetch(url, options = {}) {
             signal: this.abortController.signal
           })
           .then(result => this.setState({ data: result }))
-          .catch(console.error)
+          .catch(err => this.setState({ error: err }))
           .finally(() => this.abortController = null);
       }
 
       render() {
         return h(WrappedComponent, {
           fetchedData: this.state.data,
+          error: this.state.error,
           fetch: this.fetchData.bind(this),
           abort: this.abortController?.abort.bind(this.abortController) ||
             (() => {}),
