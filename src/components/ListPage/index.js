@@ -4,22 +4,43 @@ import {
   Link,
   withInitFetch,
   withRouter,
-  compose
+  compose,
 } from '@/core';
 import { urlFor } from '@/helper';
 import { Articles } from './Articles';
 
+const initialState = {
+  sort: 'desc',
+  limit: 30,
+  page: 0,
+  articles: [],
+};
 class ListPage extends Component {
+  static sortByTimestamp(articles, sort) {
+    return articles.sort(sort === 'asc' ?
+      (a, b) => a.timestamp - b.timestamp :
+      (a, b) => b.timestamp - a.timestamp);
+  }
+
   constructor(props) {
     super(props);
 
     this.state = {
-      sort: 'asc',
+      ...initialState,
     };
+  }
+
+  componentDidUpdate(prevState, prevProps) {
+    if (this.props.fetchedData !== prevProps.fetchedData) {
+      this.setState({
+        articles: this.props.fetchedData,
+      });
+    }
   }
 
   resort(event) {
     event.preventDefault();
+
     this.setState({
       sort: this.state.sort === 'asc' ? 'desc' : 'asc',
     });
@@ -36,27 +57,33 @@ class ListPage extends Component {
     event.preventDefault();
 
     this.setState({
-      sort: 'asc',
+      ...initialState,
+      articles: this.props.fetchedData,
     });
   }
 
+  updateLimit({ target }) {
+    this.setState({ limit: parseInt(target.value) })
+  }
+
   render() {
-    const articles = []
-      .concat(this.props.fetchedData)
-      .sort(this.state.sort === 'asc' ?
-        (a, b) => a.timestamp - b.timestamp :
-        (a, b) => b.timestamp - a.timestamp)
-      .filter(x => x);
+    const articles = ListPage.sortByTimestamp(
+      this.state.articles.slice(this.state.page, this.state.limit),
+      this.state.sort,
+    );
 
     return (
       h('div', null,
         h('div', null,
-          h('select', null,
-            [5, 10, 30, 50, 100].map((n, i) => (
+          h('select', {
+            onChange: this.updateLimit.bind(this),
+            value: this.state.limit,
+          }, [5, 10, 30, 50, 100].map((n, i) => (
                 h('option', {
                     key: n,
+                    name: 'limit',
                     value: String(n),
-                    selected: i === 0,
+                    selected: n === this.state.limit,
                   },
                   String(n), '개'
                 )

@@ -105,11 +105,10 @@ export class CompositeTree extends InstanceTree {
 
     // FIXME: state, props 비교
     if (typeof this.instance.componentDidUpdate === 'function') {
+      const prevState = this.instance.state;
+      const prevProps = this.instance.props;
       queueMicrotask(() => {
-        this.instance.componentDidUpdate(
-          this.instance.state,
-          nextTree.props
-        );
+        this.instance.componentDidUpdate(prevState, prevProps);
       });
     }
     this.children.diff(nextRendered);
