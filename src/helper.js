@@ -26,10 +26,10 @@ export function urlFor({ type, payload }, prev = '/') {
 
 export function urlForApi({ type, payload }, prev = `${kApiBasePath}/`) {
   switch (type) {
+    case 'delete':
     case 'read':
       return prev + 'articles/' + payload.id;
     case 'write':
-    case 'delete':
     case 'list':
       return prev + 'articles';
     default:
