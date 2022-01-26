@@ -49,6 +49,20 @@ class ListPage extends Component {
 
     return (
       h('div', null,
+        h('div', null,
+          h('select', null,
+            [5, 10, 30, 50, 100].map((n, i) => (
+                h('option', {
+                    key: n,
+                    value: String(n),
+                    selected: i === 0,
+                  },
+                  String(n),
+                  '개'
+                )
+            ))
+          )
+        ),
         h(Articles, {
           articles,
           resort: this.resort.bind(this)
