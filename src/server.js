@@ -58,11 +58,18 @@ class ArticleModel extends FakeDB {
 }
 
 const model = new ArticleModel();
-/** FIXME */
-model.write({ title: 'test', content: 'hi!', author: ':)' })
-model.write({ title: 'hello', content: 'world', author: 'noob' });
-model.write({ title: 'foo', content: 'bar', author: 'baz' });
-/** FIXME */
+
+/** NOTE: 더미데이터 삽입 */
+const dummy = require('./dummy')
+  .map((item, i) => ({
+    ...item,
+    timestamp: Math.floor(Math.random() * Date.now()),
+    id: i+1,
+  }));
+const mapSet = Map.prototype.set;
+mapSet.call(model, 'articles', dummy);
+dummy.forEach(item => mapSet.call(model, `articles:${item.id}`, item));
+/** NOTE: END */
 
 const router = express.Router();
 router.get('/articles', (req, res) => {
