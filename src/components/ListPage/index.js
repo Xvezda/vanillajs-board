@@ -1,4 +1,11 @@
-import { createElement as h, Component, Link, withInitFetch } from '@/core';
+import {
+  createElement as h,
+  Component,
+  Link,
+  withInitFetch,
+  withRouter,
+  compose
+} from '@/core';
 import { Articles } from './Articles';
 
 class ListPage extends Component {
@@ -17,6 +24,13 @@ class ListPage extends Component {
     });
   }
 
+  refresh(event) {
+    event.preventDefault();
+
+    this.props.history.bust('/api/articles');
+    this.props.fetch();
+  }
+
   render() {
     const articles = []
       .concat(this.props.fetchedData)
@@ -32,7 +46,7 @@ class ListPage extends Component {
           resort: this.resort.bind(this)
         }),
         h('div', null,
-          h('button', {onClick: this.props.fetch}, '새로고침'),
+          h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
           h('form', null,
             h('input', {placeholder: '검색어'}),
             h('button', {type: 'submit'}, '검색'),
@@ -44,5 +58,9 @@ class ListPage extends Component {
   }
 }
 
-const ListPageWithFetch = withInitFetch('/api/articles')(ListPage);
+const ListPageWithFetch = compose(
+  withRouter,
+  withInitFetch('/api/articles')
+)(ListPage);
+
 export { ListPageWithFetch as ListPage };
