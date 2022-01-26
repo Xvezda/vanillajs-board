@@ -25,18 +25,33 @@ class FakeDB extends Map {
 class ArticleModel extends FakeDB {
   constructor(...args) {
     super(...args);
+
+    this.cache = new Map();
     this.set('articles', []);
   }
 
   list() {
-    return this.get('articles');
+    if (this.cache.has('list')) {
+      return this.cache.get('list');
+    }
+    const articles = this.get('articles');
+    this.cache.set('list', articles);
+
+    return articles;
   }
 
   read(id) {
-    return this.get(`articles:${id}`);
+    if (this.cache.has(id)) {
+      return this.cache.get(id);
+    }
+    const article = this.get(`articles:${id}`);
+    this.cache.set(id, article);
+
+    return article;
   }
 
   write(article) {
+    this.cache.clear();
     this.get('articles').push(article);
     const id = this._autoIncrement;
     this.set(`articles:${id}`, article);
@@ -44,6 +59,7 @@ class ArticleModel extends FakeDB {
   }
 
   modify(id, modified) {
+    this.cache.clear();
     this.set('articles',
       this.get('articles')
         .map(article => article.id === Number(id) ? modified : article)
@@ -52,6 +68,7 @@ class ArticleModel extends FakeDB {
   }
 
   remove(id) {
+    this.cache.clear();
     this.set('articles', this.get('articles').filter(article => article.id !== Number(id)));
     this.delete(`articles:${id}`);
   }
@@ -64,8 +81,10 @@ const dummy = require('./dummy')
   .map((item, i) => ({
     ...item,
     timestamp: Math.floor(Math.random() * Date.now()),
-    id: i+1,
-  }));
+  }))
+  .sort((a, b) => a.timestamp - b.timestamp)
+  .map((item, i) => ({ ...item, id: i + 1 }))
+  .reverse();
 const mapSet = Map.prototype.set;
 mapSet.call(model, 'articles', dummy);
 dummy.forEach(item => mapSet.call(model, `articles:${item.id}`, item));
