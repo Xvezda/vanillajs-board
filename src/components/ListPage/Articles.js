@@ -1,19 +1,8 @@
 import { createElement as h, Component, Link, formatTimestamp } from '@/core';
 
 export class Articles extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      articles: this.props.articles,
-    };
-  }
-
-  componentDidUpdate(prevState, prevProps) {
-  }
-
   render() {
-    const articles = this.state.articles;
+    const articles = this.props.articles;
 
     return (
       h('table', null,

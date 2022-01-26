@@ -58,8 +58,7 @@ class ListPage extends Component {
                     value: String(n),
                     selected: i === 0,
                   },
-                  String(n),
-                  '개'
+                  String(n), '개'
                 )
             ))
           )
