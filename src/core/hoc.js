@@ -1,5 +1,5 @@
 import { createElement as h, Component } from './dom';
-import { request } from './utils';
+import { request } from '@/core/router';
 
 export function withFetch(url, options = {}) {
   return function (WrappedComponent) {

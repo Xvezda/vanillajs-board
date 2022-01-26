@@ -1,9 +1,4 @@
-import { createElement as h, Component, Link } from '@/core';
-
-function formatTimestamp(timestamp) {
-  const date = new Date(timestamp);
-  return [date.getFullYear(), date.getMonth()+1, date.getDate()].join('/');
-}
+import { createElement as h, Component, Link, formatTimestamp } from '@/core';
 
 export class Articles extends Component {
   constructor(props) {
