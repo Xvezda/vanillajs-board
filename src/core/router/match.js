@@ -1,5 +1,6 @@
 function pathnameToRegExp(pathname) {
   return pathname
+    .replace(/(?<![.\]])[*]/, '.*')
     .replace(/(?<=\/)\:([a-zA-Z_]+)/, '(?<$1>[^/]+)')
     .replace(/\//g, '\\/');
 }

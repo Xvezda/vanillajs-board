@@ -15,9 +15,25 @@ export class App extends Component {
     return (
       h(Router, null,
         h(Switch, null,
-          h(Route, {path: urlFor({ type: 'list' }), exact: true}, h(ListPage)),
-          h(Route, {path: urlFor({ type: 'write' }), exact: true}, h(WritePage)),
-          h(Route, {path: urlFor({ type: 'read', payload: { id: ':id' }})}, h(ReadPage)),
+          h(Route, {
+              path: urlFor({ type: 'list' }),
+              exact: true
+            },
+            h(ListPage)
+          ),
+          h(Route, {
+              path: urlFor({ type: 'write' }),
+              exact: true
+            },
+            h(WritePage)
+          ),
+          h(Route, {
+              path: urlFor({ type: 'read', payload: { id: ':id' }}),
+              exact: true
+            },
+            h(ReadPage)
+          ),
+          h(Route, null, ':)')
         )
       )
     );

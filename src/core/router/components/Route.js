@@ -59,4 +59,3 @@ export class Route extends Component {
     );
   }
 }
-
