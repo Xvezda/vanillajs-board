@@ -3,6 +3,21 @@ import { instantiateTree } from './internal';
 
 const isReservedAttribute =
   name => HostTree.reservedAttributes.includes(name) || /^on[A-Z]/.test(name);
+
+const propsToAttributeEntries = props => {
+  return Object.entries(props)
+    .filter(([name]) => !isReservedAttribute(name))
+    .filter(([_, value]) =>
+      ['boolean', 'string', 'number'].includes(typeof value))
+    .filter(([_, value]) => value || typeof value === 'boolean' && value)
+    .map(([name, value]) => {
+      if (typeof value === 'boolean' && value) {
+        return [name, name];
+      }
+      return [name, value];
+    });
+};
+
 export class HostTree extends InstanceTree {
   static get reservedAttributes() {
     return ['children', 'key', 'ref'];
@@ -13,14 +28,12 @@ export class HostTree extends InstanceTree {
   }
 
   mountProps(node, props) {
-    const propsEntries = Object.entries(props);
-    propsEntries
-      .filter(([name]) => !isReservedAttribute(name))
+    propsToAttributeEntries(props)
       .forEach(([name, value]) => {
         node.setAttribute(name, value);
       });
 
-    propsEntries
+    Object.entries(props)
       .filter(([name]) => isReservedAttribute(name))
       .forEach(([name, value]) => {
         if (/^on[A-Z]/.test(name)) {
@@ -96,8 +109,7 @@ export class HostTree extends InstanceTree {
   diffProps(nextProps) {
     const prevProps = this.tree.props;
     const combinedProps = Object.assign({}, prevProps, nextProps);
-    Object.entries(combinedProps)
-      .filter(([name]) => !isReservedAttribute(name))
+    propsToAttributeEntries(combinedProps)
       .forEach(([name, value]) => {
         if (typeof nextProps[name] === 'undefined') {
           this.transaction.push({
