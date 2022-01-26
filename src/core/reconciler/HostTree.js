@@ -207,7 +207,11 @@ export class HostTree extends InstanceTree {
             const toNode = node.childNodes[payload.to];
             const nextSibling = toNode.nextSibling;
             payload.node.replaceWith(toNode);
-            node.insertBefore(payload.node, nextSibling);
+            if (payload.node !== nextSibling) {
+              node.insertBefore(payload.node, nextSibling);
+            } else {
+              node.appendChild(payload.node);
+            }
           }
           movedPairs.add(`${payload.from}:${payload.to}`);
           break;
