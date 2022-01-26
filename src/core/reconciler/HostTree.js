@@ -21,7 +21,7 @@ export class HostTree extends InstanceTree {
       });
 
     propsEntries
-      .filter(isReservedAttribute)
+      .filter(([name]) => isReservedAttribute(name))
       .forEach(([name, value]) => {
         if (/^on[A-Z]/.test(name)) {
           node[name.toLowerCase()] = value;
@@ -54,8 +54,22 @@ export class HostTree extends InstanceTree {
     return node;
   }
 
+  unmountProps() {
+    Object.entries(this.props)
+      .forEach(([name, value]) => {
+        if (/^on[A-Z]/.test(name)) {
+          this.instance[name.toLowerCase()] = null;
+        }
+      });
+  }
+
   unmount(nextInstance) {
     const host = this.getHost();
+    if (this.children) {
+      this.children.forEach(child => child.unmount());
+    }
+    this.unmountProps();
+
     if (nextInstance) {
       const node = nextInstance.mount();
       let parentNode = host.parentNode;
@@ -95,7 +109,8 @@ export class HostTree extends InstanceTree {
         } else if (
           typeof prevProps[name] === 'undefined' &&
           typeof nextProps[name] !== 'undefined' ||
-          prevProps[name] !== nextProps[name]
+          prevProps[name] !== nextProps[name] ||
+          name === 'value'
         ) {
           this.transaction.push({
             type: 'attribute/set',
