@@ -7,28 +7,35 @@ import {
   formatTimestamp,
   request,
 } from '@/core';
+import { urlFor } from '@/helper';
 
 class ReadPage extends Component {
   editArticle(event) {
     event.preventDefault();
 
     const id = this.props.match.params.id;
-    this.props.history.push(`/write`, { id, });
+    this.props.history.push(urlFor({ type: 'write' }), { id, });
   }
 
   backToList(event) {
     event.preventDefault();
 
-    this.props.history.push('/');
+    this.props.history.push(urlFor({ type: 'list' }));
   }
 
   deleteArticle(event) {
     event.preventDefault();
 
-    request(`/api/articles/${this.props.match.params.id}`, {method: 'DELETE'})
+    request(
+      urlFor({
+        type: 'api/delete',
+        payload: {
+          id: this.props.match.params.id
+        }}),
+        {method: 'DELETE'})
       .then(() => {
-        this.props.history.bust('/api/articles');
-        this.props.history.push('/')
+        this.props.history.bust(urlFor({ type: 'api/list' }));
+        this.props.history.push(urlFor({ type: 'list' }));
       })
       .catch(console.error);
   }
@@ -58,7 +65,9 @@ class ReadPage extends Component {
 
 const ReadPageWithRouter = compose(
   withRouter,
-  withInitFetch(props => `/api/articles/${props.match.params.id}`),
+  withInitFetch(props => urlFor({
+    type: 'api/read', payload: { id: props.match.params.id }
+  })),
 )(ReadPage);
 
 export { ReadPageWithRouter as ReadPage };

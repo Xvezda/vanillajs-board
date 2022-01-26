@@ -11,6 +11,12 @@ export class Route extends Component {
         const match = matchPath(location.pathname, this.props);
         const component = this.props.component;
         if (context) {
+          const location = locations[locations.length-1] || {
+            pathname: window.location.pathname,
+            search: window.location.search,
+            hash: window.location.hash,
+            state: {},
+          };
           return (
             h(Context.Provider, {
                 value: { ...context, match }
@@ -19,10 +25,10 @@ export class Route extends Component {
               h(component, {
                   // TODO: 사이드 이펙트 감소
                   match: match || context.match,
-                  location: locations[locations.length-1] || {
-                    state: {},
-                  },
+                  location,
                   history: {
+                    location,
+                    length: locations.length,
                     push: (location, state = {}) => {
                       history.pushState(state, null, location);
                       locations.push({ state });

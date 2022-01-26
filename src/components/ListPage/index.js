@@ -6,6 +6,7 @@ import {
   withRouter,
   compose
 } from '@/core';
+import { urlFor } from '@/helper';
 import { Articles } from './Articles';
 
 class ListPage extends Component {
@@ -27,7 +28,7 @@ class ListPage extends Component {
   refresh(event) {
     event.preventDefault();
 
-    this.props.history.bust('/api/articles');
+    this.props.history.bust(urlFor({ type: 'api/list' }));
     this.props.fetch();
   }
 
@@ -74,7 +75,7 @@ class ListPage extends Component {
             h('input', {placeholder: '검색어'}),
             h('button', {type: 'submit'}, '검색'),
           ),
-          h(Link, {to: '/write'}, '작성'),
+          h(Link, {to: urlFor({ type: 'write' })}, '작성'),
         )
       )
     );
@@ -83,7 +84,7 @@ class ListPage extends Component {
 
 const ListPageWithFetch = compose(
   withRouter,
-  withInitFetch('/api/articles')
+  withInitFetch(urlFor({ type: 'api/list' }))
 )(ListPage);
 
 export { ListPageWithFetch as ListPage };

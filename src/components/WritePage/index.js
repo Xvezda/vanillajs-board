@@ -1,5 +1,6 @@
 import { createElement as h, Component, withRouter } from '@/core';
 import { request } from '@/core';
+import { urlFor } from '@/helper';
 
 class WritePage extends Component {
   constructor(props) {
@@ -7,7 +8,11 @@ class WritePage extends Component {
 
     const locationState = this.props.location.state;
     if (locationState.id) {
-      request(`/api/articles/${locationState.id}`)
+      request(
+        urlFor({
+          type: 'api/read',
+          payload: { id: locationState.id }
+        }))
         .then(this.fillForm.bind(this))
         .catch(console.error);
     }
@@ -44,10 +49,10 @@ class WritePage extends Component {
       })})
       .then(res => res.json())
       .then(({ id }) => {
-        this.props.history.bust('/api/articles');
-        this.props.history.bust(`/api/articles/${id}`);
+        this.props.history.bust(urlFor({ type: 'api/list' }));
+        this.props.history.bust(urlFor({ type: 'api/read', payload: { id, }}));
 
-        this.props.history.push(`/${id}`);
+        this.props.history.push(urlFor({ type: 'read', payload: { id, }}));
       })
       .catch(err => {
         // TODO
@@ -105,7 +110,7 @@ class WritePage extends Component {
 }
 
 WritePage.defaultProps = {
-  action: '/api/articles',
+  action: urlFor({ type: 'api/write' }),
   method: 'POST',
 };
 
