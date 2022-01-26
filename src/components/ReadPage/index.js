@@ -12,7 +12,8 @@ class ReadPage extends Component {
   editArticle(event) {
     event.preventDefault();
 
-    this.props.history.push(`/${this.props.match.params.id}`);
+    const id = this.props.match.params.id;
+    this.props.history.push(`/write`, { id, });
   }
 
   backToList(event) {
