@@ -224,13 +224,13 @@ export class HostTree extends InstanceTree {
   }
 
   process() {
-    const movedPairs = new Set();
+    const moved = new Set();
     this.transaction.forEach(({ type, payload }) => {
       const node = this.instance;
       switch (type) {
         case 'node/move':
           // FIXME: 리액트에서는 노드간의 순서가 변경되는 경우에도 input 포커스를 잃지 않는다.
-          if (!movedPairs.has(`${payload.to}:${payload.from}`)) {
+          if (!moved.has(payload.to)) {
             const toNode = node.childNodes[payload.to];
             const nextSibling = toNode.nextSibling;
             payload.node.replaceWith(toNode);
@@ -240,7 +240,7 @@ export class HostTree extends InstanceTree {
               node.appendChild(payload.node);
             }
           }
-          movedPairs.add(`${payload.from}:${payload.to}`);
+          moved.add(payload.to);
           break;
         case 'node/insert':
           if (
