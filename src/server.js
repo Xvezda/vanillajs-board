@@ -87,6 +87,7 @@ router.post('/articles', (req, res) => {
 
 router.put('/articles/:id', (req, res) => {
   const id = req.params.id;
+  const key = `articles:${id}`;
 
   if (!model.has(key)) {
     res.status(404).json({message: 'not found'});
@@ -94,7 +95,7 @@ router.put('/articles/:id', (req, res) => {
     const modifiedArticle = { ...model.get(key), ...req.body };
     model.modify(id, modifiedArticle);
 
-    res.json({message: 'ok'});
+    res.json({message: 'ok', id });
   }
 });
 
