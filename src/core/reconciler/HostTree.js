@@ -244,6 +244,9 @@ export class HostTree extends InstanceTree {
           node.removeChild(payload.node);
           break;
         case 'attribute/set':
+          if (payload.name === 'value') {
+            node.value = payload.value;
+          }
           node.setAttribute(payload.name, payload.value);
           break;
         case 'attribute/remove':
