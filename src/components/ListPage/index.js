@@ -13,6 +13,7 @@ const initialState = {
   sort: 'desc',
   limit: 30,
   page: 0,
+  keyword: '',
   articles: [],
 };
 class ListPage extends Component {
@@ -68,6 +69,7 @@ class ListPage extends Component {
 
   filterKeyword(keyword) {
     this.setState({
+      keyword,
       articles: this.props.fetchedData
         .filter(({ title }) => title.includes(keyword)),
     });
@@ -99,8 +101,10 @@ class ListPage extends Component {
           h('button', {onClick: this.reset.bind(this)}, '초기화'),
           h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
           h('input', {
+            name: 'keyword',
             placeholder: '검색어',
             onInput: ({ target }) => this.filterKeyword(target.value),
+            value: this.state.keyword,
           }),
           h(Link, {to: urlFor({ type: 'write' })}, '작성'),
         ),

@@ -9,7 +9,6 @@ const propsToAttributeEntries = props => {
     .filter(([name]) => !isReservedAttribute(name))
     .filter(([_, value]) =>
       ['boolean', 'string', 'number'].includes(typeof value))
-    .filter(([_, value]) => value || typeof value === 'boolean' && value)
     .map(([name, value]) => {
       if (typeof value === 'boolean' && value) {
         return [name, name];
@@ -122,7 +121,7 @@ export class HostTree extends InstanceTree {
           typeof prevProps[name] === 'undefined' &&
           typeof nextProps[name] !== 'undefined' ||
           prevProps[name] !== nextProps[name] ||
-          name === 'value'
+          name === 'value'  // TODO: 제어 컴포넌트는 값을 컴포넌트 상태로 고정한다
         ) {
           this.transaction.push({
             type: 'attribute/set',
