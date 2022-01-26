@@ -10,6 +10,7 @@ import { urlFor } from '@/helper';
 import { ListPage } from './ListPage';
 import { WritePage } from './WritePage';
 import { ReadPage } from './ReadPage';
+import { ErrorPage } from './ErrorPage';
 
 export class App extends Component {
   render() {
@@ -28,7 +29,12 @@ export class App extends Component {
             },
             h(WritePage)
           ),
-          h(Route, {path: '/error', exact: true}, 'error!'),
+          h(Route, {
+              path: '/error',
+              exact: true
+            },
+            h(ErrorPage)
+          ),
           h(Route, {
               path: urlFor({ type: 'read', payload: { id: ':id' }}),
               exact: true
