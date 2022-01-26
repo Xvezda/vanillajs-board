@@ -52,7 +52,7 @@ class ArticleModel extends FakeDB {
 
   write(article) {
     this.cache.clear();
-    this.get('articles').push(article);
+    this.get('articles').unshift(article);
     const id = this._autoIncrement;
     this.set(`articles:${id}`, article);
     return id;
@@ -69,7 +69,11 @@ class ArticleModel extends FakeDB {
 
   remove(id) {
     this.cache.clear();
-    this.set('articles', this.get('articles').filter(article => article.id !== Number(id)));
+    this.set(
+      'articles',
+      this.get('articles')
+        .filter(article => article.id !== Number(id))
+    );
     this.delete(`articles:${id}`);
   }
 }
@@ -88,6 +92,7 @@ const dummy = require('./dummy')
 const mapSet = Map.prototype.set;
 mapSet.call(model, 'articles', dummy);
 dummy.forEach(item => mapSet.call(model, `articles:${item.id}`, item));
+model._autoIncrement = dummy.length + 1;
 /** NOTE: END */
 
 const router = express.Router();
