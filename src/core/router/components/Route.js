@@ -3,6 +3,7 @@ import { Context } from '@/core/router/context';
 import { matchPath } from '@/core/router/match';
 import { cache } from '@/core/router/request';
 
+const locations = [];
 export class Route extends Component {
   render() {
     return (
@@ -16,14 +17,23 @@ export class Route extends Component {
               },
               component ?
               h(component, {
+                  // TODO: 사이드 이펙트 감소
                   match: match || context.match,
+                  location: locations[locations.length-1] || {
+                    state: {},
+                  },
                   history: {
-                    push: (location) => {
-                      history.pushState({}, null, location);
+                    push: (location, state = {}) => {
+                      history.pushState(state, null, location);
+                      locations.push({ state });
                       context.router.forceUpdate();
                     },
-                    replace: (location) => {
-                      history.replaceState({}, null, location);
+                    replace: (location, state = {}) => {
+                      history.replaceState(state, null, location);
+                      locations[locations.length-1] = {
+                        ...locations[locations.length-1],
+                        state,
+                      };
                       context.router.forceUpdate();
                     },
                     bust: (location) => {
