@@ -65,14 +65,14 @@ function clearContainer(container) {
 
 export function render(element, container) {
   const instance = instantiateTree(element);
-  if (container._mounted) {
-    const mounted = container._mounted;
+  if (container._mountedInstanceTree) {
+    const mounted = container._mountedInstanceTree;
     mounted.diff(element);
     return;
   }
   clearContainer(container);
 
   const rootNode = instance.mount();
-  container._mounted = instance;
+  container._mountedInstanceTree = instance;
   container.appendChild(rootNode);
 }

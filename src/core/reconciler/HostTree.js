@@ -76,6 +76,16 @@ export class HostTree extends InstanceTree {
       });
   }
 
+  getClosestCompositeTree() {
+    const host = this.getHost();
+    let parentNode = host.parentNode;
+    while (parentNode) {
+      if (parentNode._mountedInstanceTree) break;
+      parentNode = parentNode.parentNode;
+    }
+    return parentNode._mountedInstanceTree;
+  }
+
   unmount(nextInstance) {
     this.unsetRef();
 
@@ -87,16 +97,11 @@ export class HostTree extends InstanceTree {
 
     if (nextInstance) {
       const node = nextInstance.mount();
-      let parentNode = host.parentNode;
-      node._mounted = host._mounted;
-      while (parentNode) {
-        if (parentNode._mounted) break;
-        parentNode = parentNode.parentNode;
-      }
-      if (parentNode) {
-        const mounted = parentNode._mounted;
-        mounted.children = nextInstance;
-        mounted.instance = nextInstance.instance;
+      node._mountedInstanceTree = host._mountedInstanceTree;
+      const compositeTree = this.getClosestCompositeTree();
+      if (compositeTree) {
+        compositeTree.children = nextInstance;
+        compositeTree.instance = nextInstance.instance;
         if (this.parent) {
           this.parent.children = nextInstance;
         }

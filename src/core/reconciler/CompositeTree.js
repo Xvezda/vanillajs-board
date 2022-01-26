@@ -56,8 +56,8 @@ export class CompositeTree extends InstanceTree {
     this.children.parent = this;
 
     const node = this.children.mount();
-    if (!node._mounted) {
-      node._mounted = this;
+    if (!node._mountedInstanceTree) {
+      node._mountedInstanceTree = this;
     }
 
     if (typeof instance.componentDidMount === 'function') {
@@ -77,7 +77,7 @@ export class CompositeTree extends InstanceTree {
       parent.children = nextInstance;
     }
     const host = this.getHost();
-    delete host._mounted;
+    delete host._mountedInstanceTree;
 
     this.children.unmount(nextInstance);
   }
@@ -91,7 +91,7 @@ export class CompositeTree extends InstanceTree {
     }
 
     const host = this.getHost();
-    if (!host._mounted) {
+    if (!host._mountedInstanceTree) {
       if (typeof this.instance.componentDidMount === 'function') {
         queueMicrotask(() => {
           this.instance.componentDidMount();
