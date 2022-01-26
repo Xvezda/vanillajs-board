@@ -66,6 +66,13 @@ class ListPage extends Component {
     this.setState({ limit: parseInt(target.value) })
   }
 
+  filterKeyword(keyword) {
+    this.setState({
+      articles: this.props.fetchedData
+        .filter(({ title }) => title.includes(keyword)),
+    });
+  }
+
   render() {
     const articles = ListPage.sortByTimestamp(
       this.state.articles.slice(this.state.page, this.state.limit),
@@ -88,21 +95,19 @@ class ListPage extends Component {
                   String(n), '개'
                 )
             ))
-          )
+          ),
+          h('button', {onClick: this.reset.bind(this)}, '초기화'),
+          h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
+          h('input', {
+            placeholder: '검색어',
+            onInput: ({ target }) => this.filterKeyword(target.value),
+          }),
+          h(Link, {to: urlFor({ type: 'write' })}, '작성'),
         ),
         h(Articles, {
           articles,
           resort: this.resort.bind(this)
         }),
-        h('div', null,
-          h('button', {onClick: this.reset.bind(this)}, '초기화'),
-          h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
-          h('form', null,
-            h('input', {placeholder: '검색어'}),
-            h('button', {type: 'submit'}, '검색'),
-          ),
-          h(Link, {to: urlFor({ type: 'write' })}, '작성'),
-        )
       )
     );
   }
