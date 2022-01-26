@@ -35,7 +35,7 @@ function childToString(child) {
 }
 
 function wrapChildren(children) {
-  if (children.some(child => Array.isArray(child))) {
+  if (__DEV__ && children.some(child => Array.isArray(child))) {
     children.forEach(warnIfKeyNotExists);
   }
   return children.flat().map(childToString);
