@@ -11,6 +11,7 @@ export class TextTree extends HostTree {
   mount() {
     const node = document.createTextNode(this.tree);
     this.instance = node;
+    this.setRef();
     return node;
   }
 

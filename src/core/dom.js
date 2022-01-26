@@ -54,6 +54,10 @@ export function createElement(type, props, ...children) {
   };
 }
 
+export function createRef() {
+  return {current: null};
+}
+
 function clearContainer(container) {
   container.childNodes
     .forEach(container.removeChild.bind(container));

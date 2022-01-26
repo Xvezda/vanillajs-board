@@ -11,4 +11,16 @@ export class InstanceTree {
       this.key = tree.props.key;
     }
   }
+
+  setRef() {
+    if (this.props.ref) {
+      this.props.ref.current = this.instance;
+    }
+  }
+
+  unsetRef() {
+    if (this.props.ref) {
+      this.props.ref.current = null;
+    }
+  }
 }

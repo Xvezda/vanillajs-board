@@ -49,6 +49,7 @@ export class CompositeTree extends InstanceTree {
     const instance = new EnhancedType(extendedProps);
     instance.props = extendedProps;
     this.instance = instance;
+    this.setRef();
 
     this.rendered = instance.render();
     this.children = instantiateTree(this.rendered);
@@ -67,6 +68,7 @@ export class CompositeTree extends InstanceTree {
 
   unmount(nextInstance) {
     const instance = this.instance;
+    this.unsetRef();
     if (typeof instance.componentWillUnmount === 'function') {
       instance.componentWillUnmount();
     }

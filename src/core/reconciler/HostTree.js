@@ -62,6 +62,7 @@ export class HostTree extends InstanceTree {
       this.mountChildren(node, props.children);
     }
     this.instance = node;
+    this.setRef();
 
     return node;
   }
@@ -76,6 +77,8 @@ export class HostTree extends InstanceTree {
   }
 
   unmount(nextInstance) {
+    this.unsetRef();
+
     const host = this.getHost();
     if (this.children) {
       this.children.forEach(child => child.unmount());
