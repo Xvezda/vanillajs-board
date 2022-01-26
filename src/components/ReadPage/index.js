@@ -25,7 +25,10 @@ class ReadPage extends Component {
     event.preventDefault();
 
     request(`/api/articles/${this.props.match.params.id}`, {method: 'DELETE'})
-      .then(() => this.props.history.push('/'))
+      .then(() => {
+        this.props.history.bust('/api/articles');
+        this.props.history.push('/')
+      })
       .catch(console.error);
   }
 
