@@ -4,7 +4,11 @@ import { withRouter } from '@/core/router';
 export const Link = withRouter(class extends Component {
   navigate(event) {
     event.preventDefault();
-    this.props.history.push(this.props.to);
+    if (this.props.replace) {
+      this.props.history.replace(this.props.to);
+    } else {
+      this.props.history.push(this.props.to);
+    }
   }
 
   render() {
