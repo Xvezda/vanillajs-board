@@ -46,15 +46,18 @@ export class HostTree extends InstanceTree {
       });
   }
 
-  mountChildren(node, children) {
-    this.children = children
-      .map(instantiateTree);
+  mountChildren(node, props) {
+    const children = props.children;
+    if (children) {
+      this.children = children
+        .map(instantiateTree);
 
-    this.children.parent = this;
+      this.children.parent = this;
 
-    this.children
-      .map(child => child.mount())
-      .forEach(mounted => node.appendChild(mounted));
+      this.children
+        .map(child => child.mount())
+        .forEach(mounted => node.appendChild(mounted));
+    }
   }
 
   mount() {
@@ -62,10 +65,8 @@ export class HostTree extends InstanceTree {
     const node = document.createElement(type);
 
     this.mountProps(node, props);
+    this.mountChildren(node, props);
 
-    if (props.children) {
-      this.mountChildren(node, props.children);
-    }
     this.instance = node;
     this.setRef();
 
