@@ -37,6 +37,7 @@ class ListPage extends Component {
       this.setState({
         articles: this.props.fetchedData,
       });
+      this.filterKeyword();
     }
   }
 
@@ -124,8 +125,8 @@ class ListPage extends Component {
                 )
             ))
           ),
-          h('button', {onClick: this.reset.bind(this)}, '초기화'),
           h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
+          h('button', {onClick: this.reset.bind(this)}, '초기화'),
           h('select', {
               onChange: this.updateSearchField.bind(this),
               value: this.state.searchField,
