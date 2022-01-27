@@ -22,7 +22,15 @@ export class Articles extends Component {
               h('td', null,
                 h(Link, {to: `/${article.id}`}, article.title)
               ),
-              h('td', null, article.author),
+              h('td', null,
+                h('a', {
+                  href: '#',
+                  onClick: (event) => {
+                    event.preventDefault();
+                    this.props.search({ searchField: 'author', keyword: article.author })
+                  }
+                }, article.author)
+              ),
               h('td', null, formatTimestamp(article.timestamp)),
             )
           ))

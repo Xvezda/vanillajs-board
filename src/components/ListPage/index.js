@@ -11,8 +11,9 @@ import { Articles } from './Articles';
 
 const initialState = {
   sort: 'desc',
-  limit: 30,
+  limit: 10,
   page: 0,
+  searchField: 'title',
   keyword: '',
   articles: [],
 };
@@ -63,15 +64,40 @@ class ListPage extends Component {
     });
   }
 
-  updateLimit({ target }) {
-    this.setState({ limit: parseInt(target.value) })
+  search(state) {
+    this.setState({
+      ...state,
+    });
+    this.filterKeyword();
   }
 
-  filterKeyword(keyword) {
+  updateKeyword({ target }) {
+    this.search({ keyword: target.value });
+  }
+
+  updateLimit({ target }) {
+    this.search({ limit: parseInt(target.value) });
+  }
+
+  updateSearchField({ target }) {
+    this.search({ searchField: target.value });
+  }
+
+  filterKeyword() {
+    const keyword = this.state.keyword;
     this.setState({
-      keyword,
       articles: this.props.fetchedData
-        .filter(({ title }) => title.includes(keyword)),
+        .filter(article => {
+          if (keyword === '') return true;
+          const field = this.state.searchField;
+          switch (field) {
+            case 'title':
+              return article.title.includes(keyword)
+            case 'author':
+            default:
+              return article[field] === keyword;
+          }
+        }),
     });
   }
 
@@ -100,17 +126,29 @@ class ListPage extends Component {
           ),
           h('button', {onClick: this.reset.bind(this)}, '초기화'),
           h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
+          h('select', {
+              onChange: this.updateSearchField.bind(this),
+              value: this.state.searchField,
+            },
+            [
+              {field: 'title', name: '제목'},
+              {field: 'author', name: '작성자'}
+            ].map(({ field, name }) => (
+              h('option', {value: field, selected: this.state.searchField === field}, name)
+            ))
+          ),
           h('input', {
             name: 'keyword',
             placeholder: '검색어',
-            onInput: ({ target }) => this.filterKeyword(target.value),
+            onInput: this.updateKeyword.bind(this),
             value: this.state.keyword,
           }),
           h(Link, {to: urlFor({ type: 'write' })}, '작성'),
         ),
         h(Articles, {
           articles,
-          resort: this.resort.bind(this)
+          resort: this.resort.bind(this),
+          search: this.search.bind(this),
         }),
       )
     );
