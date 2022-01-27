@@ -1,3 +1,4 @@
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -6,5 +7,11 @@ module.exports = {
     filename: 'bundle.js',
     clean: true,
   },
-  plugins: [new HtmlWebpackPlugin()]
+  plugins: [new HtmlWebpackPlugin()],
+  resolve: {
+    extensions: ['.ts', '.js', '.json'],
+    alias: {
+      '@': path.resolve('src')
+    }
+  }
 };
