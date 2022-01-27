@@ -134,7 +134,11 @@ class ListPage extends Component {
               {field: 'title', name: '제목'},
               {field: 'author', name: '작성자'}
             ].map(({ field, name }) => (
-              h('option', {value: field, selected: this.state.searchField === field}, name)
+              h('option', {
+                key: field,
+                value: field,
+                selected: this.state.searchField === field
+              }, name)
             ))
           ),
           h('input', {

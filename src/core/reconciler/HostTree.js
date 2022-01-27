@@ -9,7 +9,7 @@ const propsToAttributeEntries = props => {
     .filter(([name]) => !isReservedAttribute(name))
     .filter(([_, value]) =>
       ['boolean', 'string', 'number'].includes(typeof value))
-    .filter(([name, value]) => typeof value === 'boolean' ? value : value !== '')
+    .filter(([_, value]) => typeof value === 'boolean' ? value : true)
     .map(([name, value]) => {
       if (typeof value === 'boolean') {
         return [name, name];
