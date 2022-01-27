@@ -1,11 +1,13 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+const kAssetPath = process.env.ASSET_PATH || '/';
+
 module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    publicPath: '/',
+    publicPath: kAssetPath,
     clean: true,
   },
   plugins: [new HtmlWebpackPlugin()],
