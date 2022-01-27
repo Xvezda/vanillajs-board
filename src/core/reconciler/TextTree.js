@@ -18,11 +18,14 @@ export class TextTree extends HostTree {
   diff(nextTree) {
     if (typeof nextTree !== 'string') {
       this.unmount(instantiateTree(nextTree));
-    } else if (this.tree !== nextTree) {
+      return;
+    }
+    const host = this.getHost();
+    if (host.value !== nextTree) {
       this.transaction.push({
         type: 'replace',
         payload: {
-          node: nextTree,
+          value: nextTree,
         }
       });
     }
@@ -31,9 +34,8 @@ export class TextTree extends HostTree {
 
   process() {
     this.transaction.forEach(({ payload }) => {
-      const newNode = document.createTextNode(payload.node);
-      this.instance.parentNode
-        .replaceChild(newNode, this.instance);
+      const host = this.getHost();
+      host.nodeValue = payload.value;
     });
   }
 }
