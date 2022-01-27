@@ -56,6 +56,7 @@ class CompositeTree extends InstanceTree {
   }
 }
 
+const isReservedAttribute = name => HostTree.reservedAttributes.includes(name);
 class HostTree extends InstanceTree {
   static get reservedAttributes() {
     return ['children', 'key', 'ref'];
@@ -68,9 +69,8 @@ class HostTree extends InstanceTree {
     const { type, props } = this.tree;
     const node = document.createElement(type);
 
-    const isReserved = name => HostTree.reservedAttributes.includes(name);
     Object.entries(props)
-      .filter(([name]) => !isReserved(name))
+      .filter(([name]) => !isReservedAttribute(name))
       .forEach(([name, value]) => {
         node.setAttribute(name, value);
       });
@@ -87,11 +87,40 @@ class HostTree extends InstanceTree {
     return node;
   }
 
+  diffProps(nextProps) {
+    const prevProps = this.tree.props;
+    const combinedProps = Object.assign({}, prevProps, nextProps);
+    Object.entries(combinedProps)
+      .filter(([name]) => !isReservedAttribute(name))
+      .forEach(([name, value]) => {
+        if (typeof nextProps[name] === 'undefined') {
+          this.transaction.push({
+            type: 'attribute/remove',
+            payload: {
+              name,
+            }
+          });
+        } else if (
+          typeof prevProps[name] === 'undefined' && typeof nextProps[name] !== 'undefined' ||
+          prevProps[name] !== nextProps[name]
+        ) {
+          this.transaction.push({
+            type: 'attribute/set',
+            payload: {
+              name,
+              value
+            }
+          });
+        }
+      });
+  }
+
   diff(nextTree) {
     if (this.tree.type !== nextTree.type) {
       // TODO
       return;
     }
+    this.diffProps(nextTree.props);
 
     const oldChildren = this.children;
     const newChildren = nextTree.props.children.map(instantiateTree);
@@ -109,7 +138,7 @@ class HostTree extends InstanceTree {
     prevKeys.forEach(key => {
       if (nextKeys.includes(key)) return;
       removed.push({
-        type: 'remove',
+        type: 'node/remove',
         payload: {
           node: mappedChildren[key].instance,
         }
@@ -124,7 +153,7 @@ class HostTree extends InstanceTree {
         mappedChildren[key].mount();
 
       inserted.push({
-        type: 'insert',
+        type: 'node/insert',
         payload: {
           node,
           index: i,
@@ -138,10 +167,13 @@ class HostTree extends InstanceTree {
       if (!nextKeys.includes(key)) return;
       const movedIndex = nextKeys.indexOf(key);
       if (movedIndex !== i) {
+        const children = mappedChildren[key];
+        const node = children.instance;
+        children.diff(newChildren[movedIndex].tree);
         moved.push({
-          type: 'move',
+          type: 'node/move',
           payload: {
-            node: mappedChildren[key].instance,
+            node,
             index: movedIndex,
           }
         });
@@ -160,12 +192,12 @@ class HostTree extends InstanceTree {
     this.transaction.forEach(({ type, payload }) => {
       const node = this.instance;
       switch (type) {
-        case 'remove':
+        case 'node/remove':
           node.removeChild(payload.node);
           break;
-        case 'move':
+        case 'node/move':
           // FIXME: 리액트에서는 노드간의 순서가 변경되는 경우에도 input 포커스를 잃지 않는다.
-        case 'insert':
+        case 'node/insert':
           if (
             payload.index === node.childNodes.length - 1 &&
             payload.node !== node.childNodes[node.childNodes.length-1]
@@ -174,6 +206,12 @@ class HostTree extends InstanceTree {
           } else if (payload.node !== node.childNodes[payload.index]) {
             node.insertBefore(payload.node, node.childNodes[payload.index])
           }
+          break;
+        case 'attribute/set':
+          node.setAttribute(payload.name, payload.value);
+          break;
+        case 'attribute/remove':
+          node.removeAttribute(payload.name);
           break;
       }
     });
