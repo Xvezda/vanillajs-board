@@ -15,6 +15,8 @@ class ReadPage extends Component {
     event.preventDefault();
 
     const id = this.props.match.params.id;
+    this.props.history.bust(urlFor({ type: 'api/read', payload: { id, }}));
+
     this.props.history.push(urlFor({ type: 'write' }), { id, });
   }
 
@@ -27,15 +29,18 @@ class ReadPage extends Component {
   deleteArticle(event) {
     event.preventDefault();
 
+    const id = this.props.match.params.id;
     request(
       urlFor({
         type: 'api/delete',
         payload: {
-          id: this.props.match.params.id
+          id,
         }}),
         {method: 'DELETE'})
       .then(() => {
         this.props.history.bust(urlFor({ type: 'api/list' }));
+        this.props.history.bust(urlFor({ type: 'api/read', payload: { id, }}));
+
         this.props.history.push(urlFor({ type: 'list' }));
       })
       .catch(console.error);
