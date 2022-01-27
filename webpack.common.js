@@ -10,6 +10,19 @@ module.exports = {
     publicPath: kAssetPath,
     clean: true,
   },
+  module: {
+    rules: [
+      {
+        test: /\.js$/i,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+          }
+        ]
+      }
+    ]
+  },
   plugins: [new HtmlWebpackPlugin()],
   resolve: {
     extensions: ['.ts', '.js', '.json'],
