@@ -5,6 +5,7 @@
   "author": "Xvezda <xvezda@naver.com>",
   "private": true,
   "scripts": {
+    "build": "webpack -c webpack.prod.js",
     "dev": "webpack serve -c webpack.dev.js"
   },
   "devDependencies": {
