@@ -126,6 +126,11 @@ class ListPage extends Component {
 
     return (
       h('div', null,
+        h(Articles, {
+          articles,
+          resort: this.resort.bind(this),
+          search: this.search.bind(this),
+        }),
         h('div', null,
           h('select', {
             onChange: this.updateLimit.bind(this),
@@ -175,11 +180,6 @@ class ListPage extends Component {
           }),
           h(Link, {to: urlFor({ type: 'write' })}, '작성'),
         ),
-        h(Articles, {
-          articles,
-          resort: this.resort.bind(this),
-          search: this.search.bind(this),
-        }),
       )
     );
   }
