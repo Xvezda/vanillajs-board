@@ -1,22 +1,25 @@
 import { createElement as h, Component } from '../dom';
 import { createContext } from '../context';
 
-export class Link extends Component {
-  render() {
-    return h('a', {
-        href: this.props.to,
-        onClick: this.navigate.bind(this),
-        ...this.props,
-      },
-      this.children,
-    );
-  }
-
+export const Link = withRouter(class extends Component {
   navigate(event) {
     event.preventDefault();
     history.pushState({}, null, this.props.to);
+
+    this.props.router.forceUpdate();
   }
-}
+
+  render() {
+    return (
+      h('a', {
+          href: this.props.to,
+          onClick: this.navigate.bind(this),
+        },
+        ...this.props.children,
+      )
+    );
+  }
+});
 
 function pathnameToRegExp(pathname = '/') {
   return pathname
@@ -44,21 +47,28 @@ export class Router extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      match: null,
-    };
+    this.handlePopState = this.handlePopState.bind(this);
+  }
+
+  handlePopState() {
+    this.forceUpdate();
   }
 
   componentDidMount() {
-    this.setState({
-      match: matchPath(location.pathname, {path: '/'})
-    });
+    window.addEventListener('popstate', this.handlePopState);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('popstate', this.handlePopState);
   }
 
   render() {
     return (
       h(Context.Provider, {
-          value: this.state,
+          value: {
+            match: matchPath(location.pathname, {path: '/'}),
+            router: this,
+          },
         },
         this.props.children[0]
       )
@@ -67,30 +77,16 @@ export class Router extends Component {
 }
 
 export class Route extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-    };
-  }
-
   render() {
     return (
       h(Context.Consumer, null, context => {
-        // FIXME
         const match = matchPath(location.pathname, this.props);
         const component = this.props.component;
         if (component) {
-          return h(component, context);
+          return h(component, {...context, ...this.props.passedProps}, ...this.props.passedProps.children);
         }
-        const children = component ?
-          h(component, {match: null, test: 'test', ...this.props}) :
-          this.props.children[0];
-
-        if (match) {
-          return (
-            h(Context.Provider, {value: { match, }}, children)
-          );
+        if (context) {
+          return h(Context.Provider, {value: { match, ...this.props, ...context }}, this.props.children[0]);
         }
         return '';
       })
@@ -101,7 +97,7 @@ export class Route extends Component {
 export function withRouter(WrappedComponent) {
   return class extends Component {
     render() {
-      return h(Route, {component: WrappedComponent});
+      return h(Route, {component: WrappedComponent, passedProps: this.props});
     }
   };
 }
