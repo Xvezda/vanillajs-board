@@ -52,23 +52,24 @@ class ReadPage extends Component {
     }
 
     const article = this.props.fetchedData;
+    if (!article) {
+      return '로드중...';
+    }
     return (
-      article ?
+      h('div', null,
+        h('div', null, '글번호: ', article.id),
+        h('h1', null, article.title),
+        h('div', null, '작성자: ', article.author),
+        h('div', null, '작성일: ', formatTimestamp(article.timestamp)),
         h('div', null,
-          h('div', null, '글번호: ', article.id),
-          h('h1', null, article.title),
-          h('div', null, '작성자: ', article.author),
-          h('div', null, '작성일: ', formatTimestamp(article.timestamp)),
-          h('div', null,
-            h('article', null, article.content)
-          ),
-          h('div', null,
-            h('button', {onClick: this.editArticle.bind(this)}, '수정'),
-            h('button', {onClick: this.deleteArticle.bind(this)}, '삭제'),
-            h('button', {onClick: this.backToList.bind(this)}, '목록'),
-          )
-        ) :
-      null
+          h('article', null, article.content)
+        ),
+        h('div', null,
+          h('button', {onClick: this.editArticle.bind(this)}, '수정'),
+          h('button', {onClick: this.deleteArticle.bind(this)}, '삭제'),
+          h('button', {onClick: this.backToList.bind(this)}, '목록'),
+        )
+      )
     );
   }
 }
