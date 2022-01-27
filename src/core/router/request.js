@@ -1,4 +1,39 @@
-export const cache = new Map();
+class RequestCache {
+  set(key, value) {
+    const item = {type: typeof value, value};
+    localStorage.setItem(key, JSON.stringify(item));
+  }
+
+  get(key) {
+    if (this.has(key)) {
+      const cache = localStorage.getItem(key);
+      try {
+        const item = JSON.parse(cache);
+        if (item.type !== typeof item.value)
+          throw new Error();
+
+        return item.value;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null
+  }
+
+  has(key) {
+    return localStorage.getItem(key) !== null;
+  }
+
+  clear() {
+    return localStorage.clear();
+  }
+
+  delete(key) {
+    return localStorage.removeItem(key);
+  }
+}
+export const cache = new RequestCache();
+
 export async function request(url, options = {}) {
   const abortController = new AbortController();
   const method = options.method || 'GET';
