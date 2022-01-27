@@ -1,35 +1,20 @@
-class RequestCache {
+import { Cache } from '@/core/util';
+
+class RequestCache extends Cache {
   set(key, value) {
-    const item = {type: typeof value, value};
-    localStorage.setItem(key, JSON.stringify(item));
+    return super.set(`request:${key}`, value);
   }
 
   get(key) {
-    if (this.has(key)) {
-      const cache = localStorage.getItem(key);
-      try {
-        const item = JSON.parse(cache);
-        if (item.type !== typeof item.value)
-          throw new Error();
-
-        return item.value;
-      } catch (e) {
-        return null;
-      }
-    }
-    return null
+    return super.get(`request:${key}`);
   }
 
   has(key) {
-    return localStorage.getItem(key) !== null;
-  }
-
-  clear() {
-    return localStorage.clear();
+    return super.has(`request:${key}`);
   }
 
   delete(key) {
-    return localStorage.removeItem(key);
+    return super.delete(`request:${key}`);
   }
 }
 export const cache = new RequestCache();
