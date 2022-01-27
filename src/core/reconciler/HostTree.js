@@ -19,7 +19,7 @@ const propsToAttributeEntries = props => {
 
 export class HostTree extends InstanceTree {
   static get reservedAttributes() {
-    return ['children', 'key', 'ref'];
+    return ['children', 'key', 'ref', 'style'];
   }
 
   getHost() {
@@ -35,7 +35,12 @@ export class HostTree extends InstanceTree {
     Object.entries(props)
       .filter(([name]) => isReservedAttribute(name))
       .forEach(([name, value]) => {
-        if (/^on[A-Z]/.test(name)) {
+        if (name === 'style') {
+          Object.entries(value)
+            .forEach(([name, value]) => {
+              node.style[name] = value;
+            });
+        } else if (/^on[A-Z]/.test(name)) {
           node[name.toLowerCase()] = value;
         }
       });
@@ -117,6 +122,10 @@ export class HostTree extends InstanceTree {
     const prevProps = this.tree.props;
     const combinedProps = Object.assign({}, prevProps, nextProps);
     propsToAttributeEntries(combinedProps)
+      .concat(
+        typeof combinedProps['style'] !== 'undefined' ?
+        [['style', combinedProps['style']]] :  // 배열을 연결해야 하기 때문에 이중으로 처리
+        [])
       .forEach(([name, value]) => {
         if (typeof nextProps[name] === 'undefined') {
           this.transaction.push({
@@ -265,6 +274,12 @@ export class HostTree extends InstanceTree {
         case 'attribute/set':
           if (payload.name === 'value') {
             node.value = payload.value;
+          } else if (payload.name === 'style') {
+            Object.entries(payload.value)
+              .forEach(([name, value]) => {
+                node.style[name] = value;
+              });
+            return;
           }
           node.setAttribute(payload.name, payload.value);
           break;
