@@ -27,7 +27,11 @@ export class Articles extends Component {
                   href: '#',
                   onClick: (event) => {
                     event.preventDefault();
-                    this.props.search({ searchField: 'author', keyword: article.author })
+                    this.props.search({
+                      searchField: 'author',
+                      keyword: article.author,
+                      page: 0,
+                    });
                   }
                 }, article.author)
               ),
