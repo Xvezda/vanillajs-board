@@ -261,7 +261,7 @@ class App {
       return (
         h('div', null,
           ['foo', 'bar', 'baz']
-            .map(item => h('input', {name: item, placeholder: item, key: item}))
+            .map(item => h('input', {name: item, placeholder: item, key: item, id: item}))
         )
       );
     }

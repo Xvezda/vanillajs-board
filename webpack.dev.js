@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common');
 
@@ -10,5 +11,8 @@ module.exports = merge(common, {
       '/api': 'http://localhost:3001',
     },
     historyApiFallback: true,
-  }
+  },
+  plugins: [
+    new webpack.DefinePlugin({__DEV__: true})
+  ]
 });
