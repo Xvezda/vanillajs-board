@@ -14,7 +14,7 @@ class WritePage extends Component {
           payload: { id: locationState.id }
         }))
         .then(this.fillForm.bind(this))
-        .catch(console.error);
+        .catch(([err]) => console.error(err));
     }
     this.state = {
       id: locationState.id || null,

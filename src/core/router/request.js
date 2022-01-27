@@ -34,7 +34,8 @@ export async function request(url, options = {}) {
   });
 
   if (400 <= response.status) {
-    throw response;
+    const result = await response.json();
+    throw [response, result];
   }
 
   const result = await response.json();
