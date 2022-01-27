@@ -8,14 +8,7 @@ const propsToAttributeEntries = props => {
   return Object.entries(props)
     .filter(([name]) => !isReservedAttribute(name))
     .filter(([_, value]) =>
-      ['boolean', 'string', 'number'].includes(typeof value))
-    .filter(([_, value]) => typeof value === 'boolean' ? value : true)
-    .map(([name, value]) => {
-      if (typeof value === 'boolean') {
-        return [name, name];
-      }
-      return [name, value];
-    });
+      ['boolean', 'string', 'number'].includes(typeof value));
 };
 
 export class HostTree extends InstanceTree {
@@ -30,7 +23,7 @@ export class HostTree extends InstanceTree {
   mountProps(node, props) {
     propsToAttributeEntries(props)
       .forEach(([name, value]) => {
-        node.setAttribute(name, value);
+        node.setAttribute(name, typeof value === 'boolean' ? name : value);
       });
 
     Object.entries(props)
@@ -75,8 +68,8 @@ export class HostTree extends InstanceTree {
   }
 
   unmountProps() {
-    Object.entries(this.props)
-      .forEach(([name, value]) => {
+    Object.entries(this.tree.props)
+      .forEach(([name, _]) => {
         if (/^on[A-Z]/.test(name)) {
           this.instance[name.toLowerCase()] = null;
         }
@@ -129,7 +122,10 @@ export class HostTree extends InstanceTree {
         [['style', combinedProps['style']]] :  // 배열을 연결해야 하기 때문에 이중으로 처리
         [])
       .forEach(([name, value]) => {
-        if (typeof nextProps[name] === 'undefined') {
+        if (
+          typeof nextProps[name] === 'undefined' ||
+          typeof nextProps[name] === 'boolean' && !nextProps[name]
+        ) {
           this.transaction.push({
             type: 'attribute/remove',
             payload: {
@@ -139,6 +135,7 @@ export class HostTree extends InstanceTree {
         } else if (
           typeof prevProps[name] === 'undefined' &&
           typeof nextProps[name] !== 'undefined' ||
+          typeof nextProps[name] === 'boolean' && nextProps[name] ||
           prevProps[name] !== nextProps[name] ||
           name === 'value'  // TODO: 제어 컴포넌트는 값을 컴포넌트 상태로 고정한다
         ) {
@@ -146,7 +143,7 @@ export class HostTree extends InstanceTree {
             type: 'attribute/set',
             payload: {
               name,
-              value
+              value: typeof value === 'boolean' ? name : value,
             }
           });
         }
@@ -244,43 +241,43 @@ export class HostTree extends InstanceTree {
 
   process() {
     this.transaction.forEach(({ type, payload }) => {
-      const node = this.instance;
+      const host = this.getHost();
       switch (type) {
         case 'node/move':
           // FIXME: 리액트에서는 노드간의 순서가 변경되는 경우에도 input 포커스를 잃지 않는다.
-          const toNode = node.childNodes[payload.to];
+          const toNode = host.childNodes[payload.to];
           const nextSibling = toNode.nextSibling;
           payload.node.replaceWith(toNode);
           if (payload.node !== nextSibling) {
-            node.insertBefore(payload.node, nextSibling);
+            host.insertBefore(payload.node, nextSibling);
           } else {
-            node.appendChild(payload.node);
+            host.appendChild(payload.node);
           }
           break;
         case 'node/insert':
-          if (payload.index === node.childNodes.length) {
-            node.appendChild(payload.node);
+          if (payload.index === host.childNodes.length) {
+            host.appendChild(payload.node);
           } else {
-            node.insertBefore(payload.node, node.childNodes[payload.index])
+            host.insertBefore(payload.node, host.childNodes[payload.index])
           }
           break;
         case 'node/remove':
-          node.removeChild(payload.node);
+          host.removeChild(payload.node);
           break;
         case 'attribute/set':
           if (payload.name === 'value') {
-            node.value = payload.value;
+            host.value = payload.value;
           } else if (payload.name === 'style') {
             Object.entries(payload.value)
               .forEach(([name, value]) => {
-                node.style[name] = value;
+                host.style[name] = value;
               });
             return;
           }
-          node.setAttribute(payload.name, payload.value);
+          host.setAttribute(payload.name, payload.value);
           break;
         case 'attribute/remove':
-          node.removeAttribute(payload.name);
+          host.removeAttribute(payload.name);
           break;
       }
     });

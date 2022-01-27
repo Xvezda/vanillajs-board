@@ -4,12 +4,13 @@ import { instantiateTree } from './internal';
 export class TextTree extends HostTree {
   constructor(tree) {
     super(tree);
+    this.tree = {type: '#text', children: tree, props: {}};
     // 텍스트는 자식노드가 없다
     this.children = null;
   }
 
   mount() {
-    const node = document.createTextNode(this.tree);
+    const node = document.createTextNode(this.tree.children);
     this.instance = node;
     this.setRef();
     return node;

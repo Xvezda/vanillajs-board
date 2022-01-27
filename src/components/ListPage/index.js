@@ -32,6 +32,18 @@ class ListPage extends Component {
     };
   }
 
+  nextPage() {
+    this.setState({
+      page: this.state.page + 1,
+    });
+  }
+
+  prevPage() {
+    this.setState({
+      page: this.state.page - 1 < 0 ? 0 : this.state.page - 1,
+    });
+  }
+
   componentDidUpdate(prevState, prevProps) {
     if (this.props.fetchedData !== prevProps.fetchedData) {
       this.setState({
@@ -104,7 +116,11 @@ class ListPage extends Component {
 
   render() {
     const articles = ListPage.sortByTimestamp(
-      this.state.articles.slice(this.state.page, this.state.limit),
+      this.state.articles
+        .slice(
+          this.state.page * this.state.limit,
+          this.state.page * this.state.limit + this.state.limit
+        ),
       this.state.sort,
     );
 
@@ -118,13 +134,22 @@ class ListPage extends Component {
                 h('option', {
                     key: n,
                     name: 'limit',
-                    value: String(n),
+                    value: n,
                     selected: n === this.state.limit,
                   },
-                  String(n), '개'
+                  n, '개 보기'
                 )
             ))
           ),
+          h('span', null, this.state.page + 1, '페이지'),
+          h('button', {
+            onClick: this.prevPage.bind(this),
+            disabled: !Boolean(this.state.page),
+          }, '이전'),
+          h('button', {
+            onClick: this.nextPage.bind(this),
+            disabled: this.state.articles.length <= (this.state.page + 1) * this.state.limit,
+          }, '다음'),
           h('button', {onClick: this.refresh.bind(this)}, '새로고침'),
           h('button', {onClick: this.reset.bind(this)}, '초기화'),
           h('select', {
