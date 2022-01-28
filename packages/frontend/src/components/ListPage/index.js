@@ -89,7 +89,15 @@ class ListPage extends Component {
   }
 
   updateLimit({ target }) {
-    this.search({ limit: parseInt(target.value) });
+    const {page, articles} = this.state;
+    const newLimit = parseInt(target.value);
+    const isLastPage = page * newLimit + newLimit > articles.length;
+    const newPage = isLastPage ? Math.floor(articles.length / newLimit-1) : page;
+
+    this.search({
+      page: newPage,
+      limit: newLimit,
+    });
   }
 
   updateSearchField({ target }) {
@@ -115,13 +123,11 @@ class ListPage extends Component {
   }
 
   render() {
+    const {page, limit} = this.state;
+    const baseIndex = page * limit;
     /** @type {Article[]} */
     const articles = ListPage.sortByTimestamp(
-      this.state.articles
-        .slice(
-          this.state.page * this.state.limit,
-          this.state.page * this.state.limit + this.state.limit
-        ),
+      this.state.articles.slice(baseIndex, baseIndex + limit),
       this.state.sort,
     );
 
