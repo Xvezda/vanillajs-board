@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { fireEvent, getByText, queryByText } from '@testing-library/dom';
-import { createElement as h, render, Component, createElement } from './dom';
+import { createElement as h, render, Component, createRef } from './dom';
 
 let container;
 beforeEach(() => {
@@ -159,4 +159,11 @@ describe('Component', () => {
       expect(queryByText(container, '1')).not.toBeNull();
     });
   });
+});
+
+test('createRef', () => {
+  const buttonRef = createRef();
+  expect(buttonRef.current).toBeNull();
+  render(h('button', {ref: buttonRef}, 'click'), container);
+  expect(buttonRef.current).not.toBeNull();
 });
