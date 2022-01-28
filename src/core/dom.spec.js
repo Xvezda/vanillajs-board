@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { getByText } from '@testing-library/dom';
 import { createElement as h, render, Component } from './dom';
 
 describe('render', () => {
@@ -26,7 +27,8 @@ describe('render', () => {
   test('변경사항 적용', () => {
     const container = document.createElement('div');
     render(h('h1', null, 'hello world'), container);
+    const header = getByText(container, 'hello world');
     render(h('h1', null, 'foobar'), container);
-    expect(container.innerHTML).toMatch(/foobar/);
+    expect(header).toBe(getByText(container, 'foobar'));
   });
 });
