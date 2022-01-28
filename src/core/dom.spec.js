@@ -55,6 +55,16 @@ describe('render', () => {
       expect(link.href).toBe('https://github.com/');
     });
 
+    test('boolean값 속성', () => {
+      render(h('button', {type: 'button', disabled: true}, 'click'), container);
+      const button = container.querySelector('button[disabled]');
+      expect(button).not.toBeNull();
+      act(() => {
+        render(h('button', {type: 'button', disabled: false}, 'click'), container);
+      });
+      expect(button.getAttribute('disabled')).toBeNull();
+    });
+
     test('이벤트리스너 제어', () => {
       const mock = jest.fn();
       render(h('button', {type: 'button', onClick: mock}, 'click'), container);
