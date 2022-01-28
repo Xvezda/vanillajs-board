@@ -12,13 +12,10 @@ export class Component {
       ...partialState,
     };
   }
-
-  render() {
-    return null;
-  }
 }
 Component.prototype.isComponent = {};
 
+/* istanbul ignore next */
 function warnIfKeyNotExists(children) {
   if (
     children.some(child => typeof child.props.key === 'undefined') ||
@@ -35,6 +32,7 @@ function childToString(child) {
 }
 
 function wrapChildren(children) {
+  /* istanbul ignore next */
   if (__DEV__ && children.some(child => Array.isArray(child))) {
     children.forEach(warnIfKeyNotExists);
   }
