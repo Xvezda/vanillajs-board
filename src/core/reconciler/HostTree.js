@@ -148,6 +148,27 @@ export class HostTree extends InstanceTree {
           });
         }
       });
+
+    Object.entries(combinedProps)
+      .filter(([name]) => /^on[A-Z]/.test(name))
+      .forEach(([name, value]) => {
+        if (typeof nextProps[name] === 'undefined') {
+          this.transaction.push({
+            type: 'attribute/off',
+            payload: {
+              name,
+            }
+          });
+        } else if (prevProps[name] !== nextProps[name]) {
+          this.transaction.push({
+            type: 'attribute/on',
+            payload: {
+              name,
+              value,
+            }
+          });
+        }
+      });
   }
 
   diff(nextTree) {
@@ -278,6 +299,12 @@ export class HostTree extends InstanceTree {
           break;
         case 'attribute/remove':
           host.removeAttribute(payload.name);
+          break;
+        case 'attribute/on':
+          host[payload.name.toLowerCase()] = payload.value;
+          break;
+        case 'attribute/off':
+          host[payload.name.toLowerCase()] = null;
           break;
       }
     });
