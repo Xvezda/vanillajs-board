@@ -5,7 +5,8 @@
   "author": "Xvezda <xvezda@naver.com>",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces run build",
+    "start": "yarn workspace backend start",
+    "build": "yarn workspace frontend build",
     "dev": "node ./scripts/setupDevEnv.js",
     "test": "jest"
   },

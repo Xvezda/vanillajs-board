@@ -1,4 +1,6 @@
+const path = require('path');
 const express = require('express');
+const history = require('connect-history-api-fallback');
 
 const app = express();
 app.use(express.json());
@@ -142,6 +144,15 @@ router.delete('/articles/:id', (req, res) => {
 });
 
 app.use('/api', router);
+app.use(history());
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(
+    express.static(
+      path.resolve(path.join(__dirname, '..', '..', 'frontend', 'dist'))
+    )
+  );
+}
 
 const port = process.env.NODE_ENV === 'production' ? 3000 : 3001;
 app.listen(port, () => console.log(`server listen at ${port}`));
