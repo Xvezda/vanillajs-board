@@ -3,7 +3,7 @@
  */
 import { fireEvent, getByText } from '@testing-library/dom';
 import { createElement as h, render } from '@/core';
-import { Articles } from './Articles';
+import { Articles } from '../Articles';
 
 let container;
 beforeEach(() => {

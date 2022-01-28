@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { fireEvent, getByText, queryByText } from '@testing-library/dom';
-import { createElement as h, render, Component, createRef } from './dom';
+import { createElement as h, render, Component, createRef } from '../dom';
 
 let container;
 beforeEach(() => {
