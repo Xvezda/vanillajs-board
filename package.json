@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "build": "yarn workspaces run build",
-    "dev": "webpack serve -c webpack.dev.js",
+    "dev": "node ./scripts/setupDevEnv.js",
     "test": "jest"
   },
   "devDependencies": {
