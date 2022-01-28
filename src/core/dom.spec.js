@@ -55,17 +55,23 @@ describe('render', () => {
       expect(link.href).toBe('https://github.com/');
     });
 
-    test('이벤트리스너 제거', () => {
+    test('이벤트리스너 제어', () => {
       const mock = jest.fn();
       render(h('button', {type: 'button', onClick: mock}, 'click'), container);
       act(() => {
         fireEvent.click(container.querySelector('button'));
       });
+      expect(mock).toBeCalledTimes(1);
       render(h('button', {type: 'button'}, 'click'), container);
       act(() => {
         fireEvent.click(container.querySelector('button'));
       });
       expect(mock).toBeCalledTimes(1);
+      render(h('button', {type: 'button', onClick: mock}, 'click'), container);
+      act(() => {
+        fireEvent.click(container.querySelector('button'));
+      });
+      expect(mock).toBeCalledTimes(2);
     });
   });
 });
