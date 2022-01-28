@@ -25,5 +25,10 @@
   "dependencies": {
     "core-js": "^3.20.3",
     "express": "^4.17.2"
+  },
+  "jest": {
+    "globals": {
+      "__DEV__": true
+    }
   }
 }
