@@ -1,14 +1,21 @@
 /**
  * @jest-environment jsdom
  */
-import { getByText } from '@testing-library/dom';
-import { createElement as h, render, Component } from './dom';
+import { fireEvent, getByText, queryByText } from '@testing-library/dom';
+import { createElement as h, render, Component, createElement } from './dom';
+
+let container;
+beforeEach(() => {
+  container = document.createElement('div');
+});
+
+afterEach(() => {
+  container.innerHTML = '';
+});
 
 describe('render', () => {
   test('hello world 렌더링', () => {
-    const container = document.createElement('div');
     render(h('h1', null, 'hello world'), container);
-
     expect(container).toMatchSnapshot();
   });
 
@@ -18,14 +25,11 @@ describe('render', () => {
         return h('h1', null, 'hello world');
       }
     }
-    const container = document.createElement('div');
     render(h(App), container);
-
     expect(container).toMatchSnapshot();
   });
 
   test('변경사항 적용', () => {
-    const container = document.createElement('div');
     render(h('h1', null, 'hello world'), container);
     const header = getByText(container, 'hello world');
     render(h('h1', null, 'foobar'), container);
