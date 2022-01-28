@@ -24,6 +24,16 @@ class ListPage extends Component {
       (a, b) => b.timestamp - a.timestamp);
   }
 
+  static getLastPage(length, limit) {
+    const page = Math.floor(length / limit-1);
+    return page < 0 ? 0 : page;
+  }
+
+  static queryLastPage(length, page, limit) {
+    const isLastPage = page * limit >= length;
+    return isLastPage ? ListPage.getLastPage(length, limit) : -1;
+  }
+
   constructor(props) {
     super(props);
 
@@ -91,11 +101,10 @@ class ListPage extends Component {
   updateLimit({ target }) {
     const {page, articles} = this.state;
     const newLimit = parseInt(target.value);
-    const isLastPage = page * newLimit + newLimit > articles.length;
-    const newPage = isLastPage ? Math.floor(articles.length / newLimit-1) : page;
+    const lastPage = ListPage.queryLastPage(articles.length, page, newLimit);
 
     this.search({
-      page: newPage,
+      page: lastPage < 0 ? page : lastPage,
       limit: newLimit,
     });
   }
@@ -106,19 +115,27 @@ class ListPage extends Component {
 
   filterKeyword() {
     const keyword = this.state.keyword;
+    const filtered = this.props.fetchedData
+      .filter(article => {
+        if (keyword === '') return true;
+        const field = this.state.searchField;
+        switch (field) {
+          case 'title':
+            return article.title.includes(keyword)
+          case 'author':
+          default:
+            return article[field] === keyword;
+        }
+      });
+
+    const lastPage = ListPage.queryLastPage(
+      filtered.length,
+      this.state.page,
+      this.state.limit
+    );
     this.setState({
-      articles: this.props.fetchedData
-        .filter(article => {
-          if (keyword === '') return true;
-          const field = this.state.searchField;
-          switch (field) {
-            case 'title':
-              return article.title.includes(keyword)
-            case 'author':
-            default:
-              return article[field] === keyword;
-          }
-        }),
+      page: lastPage < 0 ? this.state.page : lastPage,
+      articles: filtered,
     });
   }
 
