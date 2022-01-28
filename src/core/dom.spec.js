@@ -36,11 +36,37 @@ describe('render', () => {
     expect(container).toMatchSnapshot();
   });
 
-  test('변경사항 적용', () => {
-    render(h('h1', null, 'hello world'), container);
-    const header = getByText(container, 'hello world');
-    render(h('h1', null, 'foobar'), container);
-    expect(header).toBe(getByText(container, 'foobar'));
+  describe('변경사항 적용', () => {
+    test('텍스트 노드 변경', () => {
+      render(h('h1', null, 'hello world'), container);
+      const header = getByText(container, 'hello world');
+      act(() => {
+        render(h('h1', null, 'foobar'), container);
+      });
+      expect(header.textContent).toBe('foobar');
+    });
+
+    test('속성 변경', () => {
+      render(h('a', {href: 'https://www.google.com/'}, 'go!'), container);
+      const link = container.querySelector('a[href="https://www.google.com/"]');
+      act(() => {
+        render(h('a', {href: 'https://github.com/'}, 'go!'), container);
+      });
+      expect(link.href).toBe('https://github.com/');
+    });
+
+    test('이벤트리스너 제거', () => {
+      const mock = jest.fn();
+      render(h('button', {type: 'button', onClick: mock}, 'click'), container);
+      act(() => {
+        fireEvent.click(container.querySelector('button'));
+      });
+      render(h('button', {type: 'button'}, 'click'), container);
+      act(() => {
+        fireEvent.click(container.querySelector('button'));
+      });
+      expect(mock).toBeCalledTimes(1);
+    });
   });
 });
 
