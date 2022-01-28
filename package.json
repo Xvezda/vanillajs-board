@@ -5,7 +5,7 @@
   "author": "Xvezda <xvezda@naver.com>",
   "private": true,
   "scripts": {
-    "build": "webpack -c webpack.prod.js",
+    "build": "yarn workspaces run build",
     "dev": "webpack serve -c webpack.dev.js",
     "test": "jest"
   },
@@ -27,12 +27,15 @@
     "core-js": "^3.20.3",
     "express": "^4.17.2"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "jest": {
     "globals": {
       "__DEV__": true
     },
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
+      "^@/(.*)$": "<rootDir>/packages/frontend/src/$1"
     }
   }
 }
