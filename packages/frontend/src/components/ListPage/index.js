@@ -115,6 +115,7 @@ class ListPage extends Component {
   }
 
   render() {
+    /** @type {Article[]} */
     const articles = ListPage.sortByTimestamp(
       this.state.articles
         .slice(

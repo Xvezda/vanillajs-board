@@ -2,6 +2,7 @@ import { createElement as h, Component, Link, formatTimestamp } from '@/core';
 
 export class Articles extends Component {
   render() {
+    /** @type {Article[]} */
     const articles = this.props.articles;
     return (
       h('table', null,

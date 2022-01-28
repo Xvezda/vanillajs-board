@@ -103,6 +103,7 @@ router.get('/articles', (req, res) => {
 });
 
 router.get('/articles/:id', (req, res) => {
+  /** @type {Article | undefined} */
   const article = model.read(req.params.id);
   if (!article) {
     res.status(404).json({message: 'not found'});
@@ -112,6 +113,7 @@ router.get('/articles/:id', (req, res) => {
 });
 
 router.post('/articles', (req, res) => {
+  /** @type {RequiredArticle} */
   const article = req.body;
   const id = model.write(article);
 
@@ -125,6 +127,7 @@ router.put('/articles/:id', (req, res) => {
   if (!model.has(key)) {
     res.status(404).json({message: 'not found'});
   } else {
+    /** @type {RequiredArticle} */
     const modifiedArticle = { ...model.get(key), ...req.body };
     model.modify(id, modifiedArticle);
 

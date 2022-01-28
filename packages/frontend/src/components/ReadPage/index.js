@@ -51,6 +51,7 @@ class ReadPage extends Component {
       return h(Redirect, {to: '/error'});
     }
 
+    /** @type {Article | null} */
     const article = this.props.fetchedData;
     if (!article) {
       return '로드중...';
