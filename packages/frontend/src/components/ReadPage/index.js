@@ -43,7 +43,7 @@ class ReadPage extends Component {
 
         this.props.history.push(urlFor({ type: 'list' }));
       })
-      .catch(([err]) => console.error(err));
+      .catch(console.error);
   }
 
   render() {

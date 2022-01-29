@@ -34,12 +34,12 @@ export function withFetch(url, options = {}) {
             signal: this.abortController.signal
           })
           .then(result => this.setState({ data: result }))
-          .catch(([err, res]) => {
+          .catch(err => {
             if (500 <= err.status) {
               // TODO: alert 컴포넌트 만들기
-              alert(`오류(${err.status}): ${res.message}`);
+              alert(`오류(${err.status}): ${err.result.message}`);
             }
-            this.setState({ error: err, data: res });
+            this.setState({ error: err, data: err.result });
           })
           .finally(() => this.abortController = null);
       }
